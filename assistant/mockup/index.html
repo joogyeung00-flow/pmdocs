@@ -126,9 +126,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
 .part-role{font-size:10px;color:var(--text3)}
 
 /* ========== BOTTOM BAR ========== */
-.bottom-bar{height:48px;background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:flex-end;padding:0 20px;gap:10px;flex-shrink:0;position:relative;z-index:60}
+.bottom-bar{height:48px;background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:10px;flex-shrink:0;position:relative;z-index:60}
 
-.toast{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:8px 14px;box-shadow:var(--shadow);display:flex;align-items:center;gap:8px;animation:toastIn .4s ease;cursor:pointer;max-width:320px;transition:opacity .3s,transform .3s;white-space:nowrap}
+#toastContainer{margin-left:auto}
+.toast{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:8px 14px;box-shadow:var(--shadow);display:flex;align-items:center;gap:8px;animation:toastIn .4s ease;cursor:pointer;max-width:360px;transition:opacity .3s,transform .3s;white-space:nowrap}
 .toast.hiding{opacity:0;transform:translateY(8px)}
 @keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 .toast-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
