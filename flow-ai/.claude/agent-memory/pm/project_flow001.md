@@ -1,10 +1,12 @@
 ---
-name: FLOW-001 AI 스마트 비서 PRD 현황
-description: FLOW-001 AI 스마트 비서 기능의 PRD 작성 현황 및 핵심 결정사항
+name: FLOW-001 AI 스마트 비서 PRD 및 스펙 현황
+description: FLOW-001 AI 스마트 비서 기능의 PRD·FRD 작성 현황 및 핵심 결정사항
 type: project
 ---
 
 PRD v2.0 작성 완료 (2026-04-14, 상태: draft). 저장 경로: `docs/pm/prd/FLOW-001-ai-smart-secretary-prd.md`
+
+Phase 1 FRD v1.0 작성 완료 (2026-04-15, 상태: 초안). 저장 경로: `docs/pm/specs/FLOW-001-phase1-spec.md`
 
 **Why:** 프로토타입 v5.0 기준으로 온보딩 구조 변경(비서 이름 입력+AI 아바타 생성 → 캐릭터 선택+성격 선택), 설정 화면 단일 페이지 통합, 퇴근 리포트 행동 기반 트리거 추가, IA 섹션 신규 추가.
 

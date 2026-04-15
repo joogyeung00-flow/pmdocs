@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FLOW-001 AI 스마트 비서 프로토타입 v5.0</title>
+<title>FLOW-001 AI 스마트 비서 프로토타입 v6.0</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
@@ -89,10 +89,8 @@ tailwind.config = {
   .md-bubble blockquote { border-left: 3px solid #5B40F8; padding-left: 0.75em; margin: 0.5em 0; color: #475569; }
   .md-bubble hr { border: none; border-top: 1px solid #e2e8f0; margin: 0.6em 0; }
 
-  /* 플로우 검색/조회 블록 — 실제 프로덕트 매칭 */
-  .flow-query-block { margin-bottom: 12px; display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows 350ms ease, opacity 300ms ease; }
-  .flow-query-block > .fq-inner { overflow: hidden; min-height: 0; }
-  .flow-query-block.fq-revealed { grid-template-rows: 1fr; opacity: 1; }
+  /* 플로우 검색/조회 블록 — 숨김 처리 */
+  .flow-query-block { display: none !important; }
   .flow-query-block p { margin-bottom: 0; }
   .flow-query-body { overflow:hidden; transition: grid-template-rows 200ms ease-in-out; }
   /* 스텝 프로그레스 애니메이션 */
@@ -107,6 +105,16 @@ tailwind.config = {
   .fq-kanban-status-done { color: rgb(64, 42, 157); }
   .fq-kanban-badge-progress { background: rgba(87, 174, 0, 0.3); color: rgb(0, 102, 15); }
   .md-bubble code { background: #f1f5f9; padding: 0.1em 0.35em; border-radius: 4px; font-size: 0.85em; color: #5B40F8; }
+
+  /* 업무 상태 뱃지 */
+  .status-request { background: #FEF3C7; color: #92400E; }
+  .status-progress { background: #DBEAFE; color: #1E40AF; }
+  .status-done { background: #D1FAE5; color: #065F46; }
+  .status-overdue { background: #FEE2E2; color: #991B1B; }
+
+  /* 인앱 배너 (마무리 브리핑) */
+  .inapp-banner { position: absolute; top: 0; left: 0; right: 0; z-index: 35; transform: translateY(-100%); opacity: 0; transition: all 400ms cubic-bezier(0.34,1.56,0.64,1); }
+  .inapp-banner.show { transform: translateY(0); opacity: 1; }
 
   /* AI 응답 — 마크다운 스타일 (말풍선 아닌 전체 폭 레이아웃) */
   .ai-response { padding: 0; }
@@ -1113,7 +1121,9 @@ const BRIEFING = {
     { id:'sch-001', time:'09:30', title:'주간 팀 스탠드업', location:'화상회의',
       attendees:['김팀장','이대리','박개발','최디자인','정개발'] },
     { id:'sch-002', time:'14:00', title:'스프린트 리뷰', location:'본사 3층 회의실',
-      attendees:['김팀장','이대리','박개발','최디자인','정개발','윤기획','한마케터','이부장'] },
+      attendees:['김팀장','이대리','박개발','최디자인','정개발','윤기획','한마케터','이부장'], conflict: 'sch-005' },
+    { id:'sch-005', time:'14:00', title:'UX 리서치 결과 공유', location:'화상회의',
+      attendees:['최디자인','윤기획','한마케터'], conflict: 'sch-002' },
     { id:'sch-003', time:'16:30', title:'1on1 - 김팀장', location:'팀장실',
       attendees:['김팀장'] },
     { id:'sch-004', time:'11:00', title:'넥스트랩 AI 솔루션 도입 미팅', location:'본사 5층 대회의실',
@@ -1121,9 +1131,18 @@ const BRIEFING = {
       external: true, company: '넥스트랩' },
   ],
   tasks: [
-    { id:'task-001', title:'Q2 마케팅 보고서 초안', due:'오늘 마감', priority:'URGENT', path:['FlowAI 마케팅','Q2 캠페인'] },
-    { id:'task-002', title:'PRD 작성', due:'오늘 마감', priority:'HIGH', path:['FlowAI QA 🔧','플로우 AI 별도앱 QA','스마트비서 기획'] },
-    { id:'task-003', title:'디자인 리뷰 피드백', due:'내일 마감', priority:'NORMAL', path:['FlowAI QA 🔧','UI 컴포넌트 검수'] },
+    { id:'task-001', title:'Q2 보고서 작성', due:'오늘 마감', priority:'URGENT', path:['FlowAI 마케팅','Q2 캠페인'], status:'진행중' },
+    { id:'task-002', title:'고객사 피드백 정리', due:'오늘 마감', priority:'HIGH', path:['FlowAI QA 🔧','플로우 AI 별도앱 QA','스마트비서 기획'], status:'요청' },
+    { id:'task-003', title:'디자인 리뷰 피드백', due:'내일 마감', priority:'NORMAL', path:['FlowAI QA 🔧','UI 컴포넌트 검수'], status:'진행중' },
+    { id:'task-004', title:'경쟁사 분석 보고서', due:'1일 지연', priority:'NORMAL', path:['FlowAI 마케팅','시장 분석'], status:'진행중', overdueDays:1 },
+  ],
+  // 지연 업무 (3일 이상) — 오전 브리핑 섹션 B-2
+  overdueTasks: [
+    { id:'od-001', title:'API 문서 업데이트', overdueDays:5, status:'진행중', path:['FlowAI QA 🔧','백엔드 개발'] },
+    { id:'od-002', title:'디자인 리뷰 피드백 반영', overdueDays:4, status:'요청', path:['FlowAI QA 🔧','UI 컴포넌트 검수'] },
+    { id:'od-003', title:'테스트 시나리오 작성', overdueDays:3, status:'진행중', path:['FlowAI QA 🔧','QA'] },
+    { id:'od-004', title:'운영 가이드 문서 작성', overdueDays:7, status:'요청', path:['FlowAI QA 🔧','문서화'] },
+    { id:'od-005', title:'성능 테스트 결과 정리', overdueDays:5, status:'진행중', path:['FlowAI QA 🔧','QA'] },
   ],
   absence: {
     summary: '자는 동안 꽤 많은 일이 있었네요. 김팀장님이랑 이대리님이 새 업무를 맡겨두셨고, 박개발님 쪽 API 연동이 리뷰 단계로 넘어갔어요. 아, 그리고 팀 채널에서 신주경님 찾는 멘션이 몇 개 와 있더라고요.',
@@ -1166,14 +1185,19 @@ const BRIEFING_CTA = {
     action: { label: '고객사 자료 분석', icon: '🔍' },
     link: { label: '바로가기', icon: '📅', target: '캘린더' },
   },
+  'sch-005': {
+    summary: 'UX 리서치 결과 공유가 14:00에 있어요. 스프린트 리뷰와 시간이 겹치니 확인이 필요해요.',
+    action: { label: 'UX 리서치 보고서 확인', icon: '📊' },
+    link: { label: '바로가기', icon: '📅', target: '캘린더' },
+  },
   'task-001': {
-    summary: 'Q2 마케팅 보고서 초안이 오늘 마감이에요. 마케팅팀 채널에 공유된 데이터를 기반으로 초안을 작성해드릴까요?',
+    summary: 'Q2 보고서 작성이 오늘 마감이에요. 마케팅팀 채널에 공유된 데이터를 기반으로 초안을 작성해드릴까요?',
     action: { label: '보고서 초안 작성', icon: '✍️' },
     link: { label: '바로가기', icon: '📋', target: '업무' },
   },
   'task-002': {
-    summary: 'PRD 작성이 오늘 마감이에요. "스마트비서 기획" 관련 기존 문서와 회의록을 분석해서 구조를 잡아드릴까요?',
-    action: { label: '기존 문서 분석', icon: '🔍' },
+    summary: '고객사 피드백 정리가 오늘 마감이에요. 아직 미착수(요청) 상태니 빨리 확인해보세요.',
+    action: { label: '피드백 자료 확인', icon: '🔍' },
     link: { label: '바로가기', icon: '📋', target: '업무' },
   },
   'task-003': {
@@ -1912,7 +1936,7 @@ function renderBriefingChat(c) {
         { type: 'header', icon: 'sliders', label: '조회 조건' },
         { type: 'chips', chips: [
           { label: '업무', color: 'primary', iconKey: 'listChecks' },
-          { label: '대기, 진행중', iconKey: 'tags' },
+          { label: '요청, 진행중', iconKey: 'tags' },
           { label: '내 담당', iconKey: 'user' },
           { label: '오늘', iconKey: 'calendar' },
         ]},
@@ -1979,9 +2003,13 @@ function renderBriefingChat(c) {
   // ── 마감 업무: 자연어 분석 + 카드 ──
   if (T.length > 0) {
     const P = PRIORITY_STYLES;
-    let taskAnalysis = `### 📋 마감 업무 ${T.length}건\n\n`;
+    const requestTasks = T.filter(t => t.status === '요청');
+    let taskAnalysis = `### 📋 오늘 해야 하는 업무 ${T.length}건\n\n`;
     if (todayTasks.length > 0) {
       taskAnalysis += `오늘 마감 업무가 ${todayTasks.length}건 있어요.\n\n`;
+      if (requestTasks.length > 0) {
+        taskAnalysis += `> 📌 **"${requestTasks[0].title}"**은 아직 미착수(요청) 상태에요. 먼저 확인해보세요.\n\n`;
+      }
       const urgent = todayTasks.find(t => t.priority === 'URGENT');
       if (urgent) {
         const urgentCta = BRIEFING_CTA[urgent.id];
@@ -1989,7 +2017,7 @@ function renderBriefingChat(c) {
         taskAnalysis += urgentCta ? `${urgentCta.summary} ` : '';
         taskAnalysis += `이걸 오전 집중 시간에 먼저 처리하는 게 좋겠어요.\n\n`;
       }
-      const high = todayTasks.find(t => t.priority === 'HIGH');
+      const high = todayTasks.find(t => t.priority === 'HIGH' && t.status !== '요청');
       if (high) {
         const highCta = BRIEFING_CTA[high.id];
         taskAnalysis += `**"${high.title}"**도 오늘까지인데요, `;
@@ -1997,21 +2025,32 @@ function renderBriefingChat(c) {
         taskAnalysis += '\n\n';
       }
     }
-    const laterTasks = T.filter(t => !t.due.includes('오늘'));
+    const laterTasks = T.filter(t => !t.due.includes('오늘') && !t.overdueDays);
+    const shortOverdue = T.filter(t => t.overdueDays && t.overdueDays <= 2);
+    if (shortOverdue.length > 0) {
+      taskAnalysis += `⚠️ **"${shortOverdue[0].title}"**은 ${shortOverdue[0].overdueDays}일 지연 상태에요. 오늘 중으로 처리하거나, 이미 완료했다면 상태를 바꿔주세요.\n\n`;
+    }
     if (laterTasks.length > 0) {
       taskAnalysis += `**"${laterTasks[0].title}"**은 ${laterTasks[0].due}이라 여유 있지만, 오늘 틈날 때 미리 봐두면 내일이 편해져요.`;
     }
     html += aiText(taskAnalysis);
 
-    // 업무 카드 위젯
+    // 업무 카드 위젯 (상태 뱃지 포함)
+    const statusBadge = (status) => {
+      if (status === '요청') return '<span class="inline-flex px-1.5 py-0.5 text-[10px] font-bold rounded-full status-request">📌 요청</span>';
+      if (status === '진행중') return '<span class="inline-flex px-1.5 py-0.5 text-[10px] font-bold rounded-full status-progress">🔄 진행중</span>';
+      return '';
+    };
     html += aiCard(T.map(t => {
       const p = P[t.priority];
-      const dueColor = t.due.includes('오늘') ? 'text-red-600 bg-red-50' : 'text-yellow-600 bg-yellow-50';
+      const dueColor = t.due.includes('오늘') ? 'text-red-600 bg-red-50' : t.overdueDays ? 'text-red-700 bg-red-100' : 'text-yellow-600 bg-yellow-50';
+      const dueLabel = t.overdueDays ? `${t.overdueDays}일 지연` : t.due;
       return `
       <div onclick="showToast('업무로 이동합니다')" class="py-2.5 border-b border-gray-100 last:border-0 cursor-pointer hover:bg-gray-50 -mx-1 px-1 rounded-lg transition-colors">
-        <div class="flex items-center gap-1.5 mb-1">
+        <div class="flex items-center gap-1.5 mb-1 flex-wrap">
           <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-bold rounded-full ${p.bg} ${p.text}">${p.icon} ${p.label}</span>
-          <span class="inline-flex px-1.5 py-0.5 text-[10px] font-bold rounded-full ${dueColor}">${t.due}</span>
+          <span class="inline-flex px-1.5 py-0.5 text-[10px] font-bold rounded-full ${dueColor}">${dueLabel}</span>
+          ${statusBadge(t.status)}
         </div>
         <div class="flex items-center justify-between">
           <div class="flex-1 min-w-0">
@@ -2025,6 +2064,38 @@ function renderBriefingChat(c) {
         </div>
       </div>`;
     }).join(''));
+  }
+
+  // ── 지연 업무 리마인드 (섹션 B-2, 3일 이상 지연) ──
+  const OD = BRIEFING.overdueTasks;
+  if (OD && OD.length > 0) {
+    let odAnalysis = `### ⏰ 지연 업무 리마인드\n\n`;
+    if (OD.length >= 10) {
+      odAnalysis += `마감이 지난 업무가 **${OD.length}건** 있어요. 이미 완료했다면 상태를 바꿔주세요.`;
+    } else {
+      odAnalysis += `마감이 3일 이상 지난 업무가 **${OD.length}건** 있어요. 이미 완료한 업무가 있다면 상태를 업데이트해주세요.`;
+    }
+    html += aiText(odAnalysis);
+
+    // 지연 업무 카드 (최대 3건 표시)
+    const showOD = OD.slice(0, 3);
+    const restOD = OD.length - 3;
+    html += aiCard(`
+      ${showOD.map(t => `
+        <div onclick="showToast('업무로 이동합니다')" class="py-2.5 border-b border-gray-100 last:border-0 cursor-pointer hover:bg-gray-50 -mx-1 px-1 rounded-lg transition-colors">
+          <div class="flex items-center gap-1.5 mb-1">
+            <span class="inline-flex px-1.5 py-0.5 text-[10px] font-bold rounded-full status-overdue">🔴 ${t.overdueDays}일 지연</span>
+            ${t.status === '요청' ? '<span class="inline-flex px-1.5 py-0.5 text-[10px] font-bold rounded-full status-request">📌 요청</span>' : '<span class="inline-flex px-1.5 py-0.5 text-[10px] font-bold rounded-full status-progress">🔄 진행중</span>'}
+          </div>
+          <p class="text-sm font-medium text-gray-900">${t.title}</p>
+          <p class="text-xs text-gray-400 mt-0.5">${t.path.join(' > ')}</p>
+        </div>
+      `).join('')}
+      ${restOD > 0 ? `<div class="py-2 text-center"><span class="text-xs text-gray-500">외 ${restOD}건의 지연 업무가 있어요</span></div>` : ''}
+      <div onclick="showToast('플로우 업무 목록으로 이동합니다')" class="mt-2 py-2.5 text-center cursor-pointer rounded-lg bg-amber-50 hover:bg-amber-100 transition-colors">
+        <span class="text-xs font-medium text-amber-700">완료했다면 상태 업데이트하기 →</span>
+      </div>
+    `);
   }
 
   // ── 퇴근 후 변화: 자연어 분석 ──
@@ -2140,6 +2211,8 @@ function renderScheduleItemChat(c, s) {
     // 검색/조회 블록 (헤더와 응답 사이)
     let queryHtml = '';
     // 플로우 검색
+    // 참석자 기반 탐색 포함
+    const extInternalAttendees = s.attendees.filter(a => !a.includes(`(${s.company})`));
     queryHtml += renderFlowQuery('플로우 검색', [
       { title: '의도 분석', items: [
         { type: 'header', icon: 'sliders', label: '검색 조건' },
@@ -2147,18 +2220,22 @@ function renderScheduleItemChat(c, s) {
           { label: '통합 탐색', color: 'primary', icon: '🔍' },
           { label: '관련도순', icon: '↕️' },
         ]},
-        { type: 'header', icon: 'search', label: '검색 키워드' },
+        { type: 'header', icon: 'search', label: '검색 키워드 (제목·본문)' },
         { type: 'chips', chips: [
           { label: `${s.company}` },
+          { label: `${s.title}` },
         ]},
+        { type: 'header', icon: 'users', label: '참석자 기반 탐색' },
+        { type: 'chips', chips: extInternalAttendees.slice(0, 3).map(a => ({ label: a, color: 'cyan' })) },
       ]},
-      { title: '탐색', result: `중복된 검색 결과를 제외하고 총 9건의 결과를 정리했어요.`, chips: [
+      { title: '탐색', result: `제목·본문 키워드와 참석자 기반으로 연관 자료를 탐색했어요. 완료 업무 포함 총 9건을 정리했어요.`, chips: [
         { label: '총합 9건' },
-        { label: '게시글 4건' },
-        { label: '댓글 2건', color: 'orange' },
-        { label: '채팅 3건', color: 'cyan' },
+        { label: '업무 3건' },
+        { label: '게시글 2건', color: 'orange' },
+        { label: '위키 1건', color: 'cyan' },
+        { label: '채팅 3건', color: 'green' },
       ]},
-      { title: '검색 결과 확인', result: `검색 결과에 '${s.company}' 관련 업무(이슈/개선), 회의록(미팅/정기미팅), 지원 내역, 모니터링 알림, 채팅 논의 등 다양한 자료가 다수 포함되어 있어 사용자가 '${s.company} 관련 자료'를 찾는 목적에 직접적으로 부합합니다.` },
+      { title: '검색 결과 확인', result: `'${s.company}' 관련 업무, 회의록, 지원 내역, 채팅 논의 등 다양한 자료가 포함되어 있어 미팅 준비에 참고할 수 있습니다.` },
     ], null, '연관 결과 발견');
 
     // 웹 검색
@@ -2181,8 +2258,13 @@ function renderScheduleItemChat(c, s) {
   // ── AI 응답 시작 (헤더 → 검색/조회 → 본문) ──
   html += renderAiResponseStart(c, queryHtml);
 
-    // 1. 분석 결과 — 핵심 요약
-    html += aiText(`**${s.time}**에 **${s.company}** 미팅이 있어요.\n\n플로우 내부 자료와 웹 검색 결과를 종합해서 분석해봤어요.`);
+    // 1. 분석 결과 — 핵심 요약 + 동시 일정 충돌 자연어 안내
+    let extConflict = '';
+    if (s.conflict) {
+      const cf = BRIEFING.schedules.find(cs => cs.id === s.conflict);
+      if (cf) extConflict = ` 참고로, 같은 시간에 **${cf.title}** 일정도 잡혀 있어서 시간이 겹쳐요.`;
+    }
+    html += aiText(`**${s.time}**에 **${s.company}** 미팅이 있어요.${extConflict}\n\n플로우 내부 자료와 웹 검색 결과를 종합해서 분석해봤어요.`);
 
     // 2. 고객사 분석 카드
     html += aiCard(`
@@ -2273,7 +2355,11 @@ function renderScheduleItemChat(c, s) {
     ]);
 
   } else {
-    // ── 기존: 내부 일정 ──
+    // ── 내부 일정: 키워드 + 참석자 기반 연관 검색 ──
+    // 검색 키워드: 일정 제목 + 참석자 이름
+    const searchKeywords = [s.title];
+    if (s.attendees.length <= 3) searchKeywords.push(...s.attendees.slice(0, 2));
+
     const internalQueryHtml = renderFlowQuery('플로우 검색', [
       { title: '의도 분석', items: [
         { type: 'header', icon: 'sliders', label: '검색 조건' },
@@ -2281,23 +2367,25 @@ function renderScheduleItemChat(c, s) {
           { label: '통합 탐색', color: 'primary', icon: '🔍' },
           { label: '관련도순', icon: '↕️' },
         ]},
-        { type: 'header', icon: 'search', label: '검색 키워드' },
-        { type: 'chips', chips: [
-          { label: s.title },
-        ]},
+        { type: 'header', icon: 'search', label: '검색 키워드 (제목·본문)' },
+        { type: 'chips', chips: searchKeywords.map(k => ({ label: k })) },
+        { type: 'header', icon: 'users', label: '참석자 기반 탐색' },
+        { type: 'chips', chips: s.attendees.slice(0, 3).map(a => ({ label: a, color: 'cyan' })) },
       ]},
-      { title: '탐색', result: `중복된 검색 결과를 제외하고 총 3건의 결과를 정리했어요.`, chips: [
-        { label: '총합 3건' },
-        { label: '게시글 1건' },
-        { label: '댓글 1건', color: 'orange' },
-        { label: '채팅 1건', color: 'cyan' },
+      { title: '탐색', result: `일정 제목·참석자 기반으로 연관 자료를 탐색했어요. 완료된 업무 포함 총 5건을 찾았어요.`, chips: [
+        { label: '총합 5건' },
+        { label: '업무 2건' },
+        { label: '게시글 1건', color: 'orange' },
+        { label: '위키 1건', color: 'cyan' },
+        { label: '채팅 1건', color: 'green' },
       ]},
-    ], `검색 결과에 '${s.title}' 관련 일정 정보, 참석자, 장소 등이 포함되어 있어 사용자가 '회의 준비'를 찾는 목적에 부합합니다.`, '회의 준비 안내');
+      { title: '검색 결과 확인', result: `'${s.title}' 관련 업무, 게시글, 위키 등 다양한 자료가 포함되어 있어 일정 준비에 참고할 수 있습니다.` },
+    ], null, '연관 결과 발견');
 
     // AI 응답 시작 (헤더 → 검색 → 본문)
     html += renderAiResponseStart(c, internalQueryHtml);
 
-    // 1. 자연어 분석 (시간대 인사이트 + CTA 제안)
+    // 자연어로 통합 분석 (시간 안내 + 충돌 + 관련 자료 요약 + 준비 사항)
     const hour = parseInt(s.time.split(':')[0]);
     const now = new Date();
     const meetingTime = new Date();
@@ -2308,15 +2396,40 @@ function renderScheduleItemChat(c, s) {
     if (diffMin > 0 && diffMin <= 30) timeContext = `**${s.time}** 시작까지 약 ${diffMin}분 남았어요. 곧 시작이니 준비해주세요!`;
     else if (hour < 10) timeContext = `**${s.time}**에 시작이에요. 오전 일찍이니 미리 준비해두면 좋겠어요.`;
     else if (hour < 13) timeContext = `**${s.time}**에 시작이에요. 참석 전에 관련 자료를 한번 훑어보세요.`;
-    else if (hour < 17) timeContext = `**${s.time}**에 시작이에요. 점심 후에 여유 있게 준비하면 될 것 같아요.`;
+    else if (hour < 17) timeContext = `**${s.time}**에 시작이에요.`;
     else timeContext = `**${s.time}**에 시작이에요. 간결하게 진행될 수 있도록 안건을 미리 확인해보세요.`;
 
-    let suggestion = '';
-    if (cta && cta.action) {
-      suggestion = `\n\n플로우에서 관련 자료를 찾아봤는데, **${cta.action.label}**을 먼저 해두면 회의가 더 수월할 거예요.`;
+    // 일정별 자연어 응답 조합
+    let naturalText = `${timeContext} **${s.attendees.length}명**이 참석 예정이고, 장소는 **${s.location}**이에요.`;
+
+    // 동시 일정 충돌 — 자연어로 안내
+    if (s.conflict) {
+      const conflictSchedule = BRIEFING.schedules.find(cs => cs.id === s.conflict);
+      if (conflictSchedule) {
+        naturalText += `\n\n참고로, 같은 시간에 **${conflictSchedule.title}** 일정도 잡혀 있어서 시간이 겹쳐요. 어느 쪽에 참석할지 미리 확인해두시면 좋겠어요.`;
+      }
     }
 
-    html += aiText(`${timeContext}${suggestion}\n\n**${s.attendees.length}명**이 참석 예정이고, 장소는 **${s.location}**이에요.`);
+    // 관련 자료 — 자연어 요약
+    if (s.id === 'sch-001') {
+      naturalText += `\n\n플로우에서 관련 자료를 찾아봤는데, 이대리님이 정리한 **주간 업무 현황**이 있고, 박개발님이 올린 **스프린트 #12 회고 요약** 게시글도 있어요. 지난주 액션 아이템이 포함되어 있으니 스탠드업 전에 한번 훑어보면 좋겠어요.`;
+    } else if (s.id === 'sch-002') {
+      naturalText += `\n\n관련 자료를 찾아봤어요. 최디자인님의 **UI 컴포넌트 QA 검수**가 아직 진행 중이고, 윤기획님이 작성한 **스프린트 리뷰 가이드** 위키도 있어요. 그리고 박개발님의 **API 연동 개발**은 이미 완료됐는데, 리뷰 내용을 참고하면 논의할 때 도움이 될 거예요.`;
+    } else if (s.id === 'sch-005') {
+      naturalText += `\n\n관련 자료를 찾아봤는데, 최디자인님이 진행 중인 **UI 컴포넌트 QA 검수** 업무와 윤기획님이 작성한 **스프린트 리뷰 가이드** 위키가 있어요. UX 리서치 결과와 연결해서 논의하면 좋겠어요.`;
+    } else if (s.id === 'sch-003') {
+      naturalText += `\n\n플로우에서 관련 내용을 찾아봤어요. 신주경님이 작업 중인 **Q2 보고서 작성** 업무가 있고, 어제 **김팀장님과 1:1 채팅**에서 나눈 대화도 참고하면 좋겠어요. 보고서 진행 상황을 공유하면서 방향을 맞춰보면 어떨까요?`;
+    }
+
+    // 준비 사항 — 자연어로 자연스럽게 이어서
+    if (cta && cta.action) {
+      naturalText += `\n\n미리 **${cta.action.label}**을 해두면 회의가 더 수월할 거예요.`;
+    }
+    if (s.location.includes('화상')) {
+      naturalText += ` 화상회의 링크 접속도 미리 확인해두세요.`;
+    }
+
+    html += aiText(naturalText);
 
     // 2. 일정 상세 카드
     html += aiCard(`
@@ -2567,23 +2680,25 @@ function renderWrapUpChat(c) {
   // 오늘 업무 현황 — 브리핑과 동일한 업무 카드 컴포넌트
   const P = PRIORITY_STYLES;
   const wrapUpTasks = [
-    { title: 'Q2 마케팅 보고서 초안', path: ['FlowAI 마케팅','Q2 캠페인'], priority: 'URGENT', done: true, doneTime: '14:30 제출 완료' },
-    { title: 'PRD 작성', path: ['FlowAI QA 🔧','스마트비서 기획'], priority: 'HIGH', done: true, doneTime: '스마트비서 기획 PRD 1차 완료' },
-    { title: '주간 스탠드업 참석', path: ['FlowAI QA 🔧','팀 회의'], priority: 'NORMAL', done: true, doneTime: '09:30 화상회의' },
-    { title: '디자인 리뷰 피드백', path: ['FlowAI QA 🔧','UI 컴포넌트 검수'], priority: 'NORMAL', done: false, doneTime: '내일 마감 — 내일 오전에 처리 추천' },
-    { title: '이대리 멘션 회신', path: ['FlowAI 마케팅','Q2 캠페인'], priority: 'NORMAL', done: false, doneTime: 'Q2 기획안 리뷰 요청 — 내일 오전 추천' },
+    { title: 'Q2 보고서 작성', path: ['FlowAI 마케팅','Q2 캠페인'], priority: 'URGENT', done: true, status: '완료', doneTime: '14:30 제출 완료' },
+    { title: '고객사 피드백 정리', path: ['FlowAI QA 🔧','스마트비서 기획'], priority: 'HIGH', done: true, status: '완료', doneTime: '고객사 피드백 정리 완료' },
+    { title: '주간 스탠드업 참석', path: ['FlowAI QA 🔧','팀 회의'], priority: 'NORMAL', done: true, status: '완료', doneTime: '09:30 화상회의' },
+    { title: '디자인 리뷰 피드백', path: ['FlowAI QA 🔧','UI 컴포넌트 검수'], priority: 'NORMAL', done: false, status: '진행중', doneTime: '내일 마감 — 내일 오전에 처리 추천' },
+    { title: '이대리 멘션 회신', path: ['FlowAI 마케팅','Q2 캠페인'], priority: 'NORMAL', done: false, status: '요청', doneTime: 'Q2 기획안 리뷰 요청 — 내일 오전 추천' },
   ];
   html += aiText('### 📊 오늘 업무 현황');
   html += aiCard(wrapUpTasks.map(t => {
     const p = P[t.priority];
-    const statusBadge = t.done
-      ? '<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-green-50 text-green-600">✅ 완료</span>'
-      : '<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-yellow-50 text-yellow-600">⏳ 미처리</span>';
+    const statusBadgeHtml = t.done
+      ? '<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-bold rounded-full status-done">✅ 완료</span>'
+      : t.status === '요청'
+        ? '<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-bold rounded-full status-request">📌 요청</span>'
+        : '<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-bold rounded-full status-progress">⏳ 진행중</span>';
     return `
       <div onclick="showToast('업무로 이동합니다')" class="py-2.5 border-b border-gray-100 last:border-0 cursor-pointer hover:bg-gray-50 -mx-1 px-1 rounded-lg transition-colors">
         <div class="flex items-center gap-1.5 mb-1">
           <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-bold rounded-full ${p.bg} ${p.text}">${p.icon} ${p.label}</span>
-          ${statusBadge}
+          ${statusBadgeHtml}
         </div>
         <div class="flex items-center justify-between">
           <div class="flex-1 min-w-0">
@@ -2597,6 +2712,21 @@ function renderWrapUpChat(c) {
         </div>
       </div>`;
   }).join(''));
+
+  // 지연 업무 요약 (섹션 B-2)
+  const wrapUpOD = BRIEFING.overdueTasks;
+  if (wrapUpOD && wrapUpOD.length > 0) {
+    html += aiText(`---\n\n### ⏰ 지연 업무`);
+    html += aiCard(`
+      <div class="py-3 text-center">
+        <p class="text-sm text-gray-700">외 <strong class="text-red-600">${wrapUpOD.length}건</strong>의 지연 업무가 있어요</p>
+        <p class="text-xs text-gray-500 mt-1">이미 완료한 업무가 있다면 상태를 업데이트해주세요</p>
+      </div>
+      <div onclick="showToast('플로우 업무 목록으로 이동합니다')" class="py-2.5 text-center cursor-pointer rounded-lg bg-amber-50 hover:bg-amber-100 transition-colors">
+        <span class="text-xs font-medium text-amber-700">지연 업무 확인하기 →</span>
+      </div>
+    `);
+  }
 
   // 오늘 하루 분석
   html += aiText('---\n\n### 📈 오늘 하루 분석\n\n오늘 **일정 3건** 모두 참석했고, **마감 업무 2건**을 시간 내에 완료했어요. 집중도 높은 하루였어요! 👏');
@@ -2978,7 +3108,10 @@ function copyAiResponse(btn) {
 
 // 마크다운 텍스트 블록 (AI 응답 내부용)
 function aiText(content) {
-  return md(content);
+  if (typeof marked === 'undefined') return content;
+  try {
+    return typeof marked.parse === 'function' ? marked.parse(content) : marked(content);
+  } catch (e) { return content; }
 }
 
 // 인터랙티브 카드 위젯 (AI 응답 내부용)
