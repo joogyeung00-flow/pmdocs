@@ -1,7 +1,7 @@
 ---
 작성자: agent-designer
-작성일: 2026-04-08
-버전: 1.0.0
+작성일: 2026-04-15
+버전: 1.1.0
 상태: draft
 feature: DS-AVATAR
 ---
@@ -52,9 +52,43 @@ feature: DS-AVATAR
 - 온라인 상태 표시: 우측 하단 dot (`w-2.5 h-2.5`, `bg-semantic-success-bg-emphasis`, ring 흰색)
 
 ### FlowAI Avatar (AI 아바타)
-- Flow AI 브랜드 아이콘 사용
-- 배경: `brand.500` (#5B40F8) gradient
-- 아이콘: 흰색 AI 심볼
+
+통일 AI 아바타 1종. 캐릭터 선택 없이 고정 디자인을 사용합니다.
+
+**형태 및 구조**
+
+| 속성 | 값 |
+|------|----|
+| 형태 | 원형 구체 (border-radius: 50%) |
+| 배경 | radial-gradient (brand-400 → brand-500 → brand-700) |
+| ::before (하이라이트) | radial-gradient, 좌상단 반사광 (흰색 20% → transparent) |
+
+**바이저 (중앙 다크 영역)**
+
+| 속성 | 값 |
+|------|----|
+| 위치 | 중앙 배치 |
+| 너비 | 아바타 너비의 68% |
+| 높이 | 아바타 높이의 38% |
+| border-radius | 999px (캡슐형) |
+| 배경 | linear-gradient (#1a1040 → #2a1860) |
+
+**눈 (흰색 세로 타원 2개)**
+
+| 사이즈 | 눈 크기 | 간격 |
+|--------|---------|------|
+| md (32px) | 4×6px | 6px |
+| lg (56px) | 7×10px | 10px |
+
+- 색상: `#FFFFFF`
+- 애니메이션: glow 3초 ease-in-out infinite (opacity 0.7 ↔ 1.0, box-shadow 변화)
+
+**사이즈 정의**
+
+| Size | 지름 | 용도 |
+|------|------|------|
+| `md` | 32px | 채팅 헤더, AI 응답 버블, 홈 프로필 카드 |
+| `lg` | 56px | 온보딩 Step 1 상단 |
 
 ### UserProfile (이름 + 아바타)
 ```

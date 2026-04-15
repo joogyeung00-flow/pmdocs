@@ -1,7 +1,7 @@
 ---
 작성자: agent-designer
-작성일: 2026-04-08
-버전: 1.0
+작성일: 2026-04-15
+버전: 1.1
 상태: draft
 feature-id: FLOW-001
 design-system: design-system/design-tokens/ 및 design-system/common/ 참조
@@ -17,13 +17,22 @@ design-system: design-system/design-tokens/ 및 design-system/common/ 참조
 
 | 컴포넌트 | 소스 경로 | 용도 |
 |---------|----------|------|
-| FlowAIAvatar | `common/flowai-avatar.tsx` | AI 비서 아바타 표시 |
+| FlowAIAvatar | `common/flowai-avatar.tsx` | AI 비서 아바타 표시 — 보라 구체+바이저+glow 눈, md(32px)/lg(56px) 2종 |
 | PriorityChip | `common/PriorityChip.tsx` | 업무 우선순위 배지 (URGENT/HIGH/NORMAL/LOW) |
 | AvatarProfile | `common/AvatarProfile.tsx` | 프로필 아바타 |
 | EmptyContent | `common/EmptyContent.tsx` | 빈 상태 표시 |
 | FieldChip | `common/ui/FieldChip.tsx` | 키워드 선택 칩 |
 | LabeledInput | `common/ui/LabeledInput.tsx` | 라벨 포함 입력 필드 |
 | ActionCard | `common/ui/ActionCard.tsx` | 액션 카드 |
+
+**FlowAIAvatar 디자인 상세**
+
+- 형태: 원형 구체 (border-radius: 50%)
+- 배경: radial-gradient (brand-400 → brand-500 → brand-700)
+- 바이저: 중앙 캡슐형 다크 영역 (너비 68%, 높이 38%, border-radius: 999px, 배경 #1a1040 → #2a1860)
+- 눈: 흰색 세로 타원 2개 — md: 4×6px / lg: 7×10px, glow 애니메이션 3초
+- 하이라이트: ::before 좌상단 radial-gradient 반사광
+- 참고: [avatar.md](./avatar.md) FlowAI Avatar 섹션
 
 ---
 
@@ -53,7 +62,7 @@ interface ChatBubbleProps {
 | 패딩 | px:12, py:8 | px:12, py:8 |
 | 반경 | 6px (chatBubble.radius) | 6px |
 | 최대 너비 | 80% | 80% |
-| 아바타 | FlowAIAvatar (h-6, w-6) 좌측 | 없음 |
+| 아바타 | FlowAIAvatar md(32px), 좌측 배치 | 없음 |
 | 진입 애니메이션 | `fade-in` (150ms, ease-out) | `fade-in` (150ms, ease-out) |
 
 ---
@@ -189,7 +198,7 @@ interface BriefingCTAProps {
 
 ### 2-7. KeywordChip (키워드 선택 칩)
 
-온보딩 아바타 키워드 선택에 사용.
+온보딩 브리핑 스타일 선택에 사용.
 
 **Props**
 ```typescript
