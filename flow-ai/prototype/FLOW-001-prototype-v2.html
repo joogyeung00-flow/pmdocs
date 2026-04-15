@@ -116,9 +116,52 @@ tailwind.config = {
   .inapp-banner { position: absolute; top: 0; left: 0; right: 0; z-index: 35; transform: translateY(-100%); opacity: 0; transition: all 400ms cubic-bezier(0.34,1.56,0.64,1); }
   .inapp-banner.show { transform: translateY(0); opacity: 1; }
 
+  /* AI 아바타 — 홀로그래픽 오브 */
+  @keyframes eyeGlow {
+    0%, 100% { box-shadow: 0 0 4px rgba(255,255,255,0.9), 0 0 8px rgba(255,255,255,0.3); }
+    50%      { box-shadow: 0 0 6px rgba(255,255,255,1), 0 0 12px rgba(255,255,255,0.5); }
+  }
+  .ai-avatar {
+    width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+    background: radial-gradient(circle at 40% 35%, #947DFF 0%, #5B40F8 50%, #3D29AA 100%);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 8px rgba(91,64,248,0.4), inset 0 -3px 6px rgba(30,20,80,0.4);
+    position: relative; overflow: hidden;
+  }
+  /* 상단 글로시 하이라이트 */
+  .ai-avatar::before {
+    content: ''; position: absolute; border-radius: 50%;
+    top: 4%; left: 18%; width: 55%; height: 35%;
+    background: radial-gradient(ellipse, rgba(255,255,255,0.55) 0%, transparent 70%);
+  }
+  /* 바이저 (눈 영역) */
+  .ai-avatar-visor {
+    width: 68%; height: 38%; border-radius: 999px;
+    background: linear-gradient(180deg, #1a1040 0%, #2a1860 100%);
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.5), 0 1px 1px rgba(255,255,255,0.1);
+    display: flex; align-items: center; justify-content: center; gap: 4px;
+    position: relative; z-index: 2;
+    border: 1px solid rgba(91,64,248,0.3);
+  }
+  .ai-avatar-eye {
+    width: 4px; height: 6px; border-radius: 50%; background: white;
+    box-shadow: 0 0 4px rgba(255,255,255,0.9), 0 0 8px rgba(255,255,255,0.3);
+    animation: eyeGlow 3s ease-in-out infinite;
+  }
+  .ai-avatar-eye:last-child { animation-delay: 0.3s; }
+
+  .ai-avatar.lg { width: 56px; height: 56px;
+    box-shadow: 0 4px 20px rgba(91,64,248,0.4), 0 0 40px rgba(91,64,248,0.1), inset 0 -4px 10px rgba(30,20,80,0.4);
+  }
+  .ai-avatar.lg .ai-avatar-visor { gap: 7px;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 2px rgba(255,255,255,0.1);
+  }
+  .ai-avatar.lg .ai-avatar-eye { width: 7px; height: 10px;
+    box-shadow: 0 0 6px rgba(255,255,255,0.9), 0 0 14px rgba(255,255,255,0.4);
+  }
+
   /* AI 응답 — 마크다운 스타일 (말풍선 아닌 전체 폭 레이아웃) */
   .ai-response { padding: 0; }
-  .ai-response .ai-header { padding-bottom: 12px; margin-bottom: 4px; }
   .ai-response-body { font-size: 14px; color: #1e293b; line-height: 1.7; }
   /* 스트리밍: 자식 요소 초기 숨김 */
   .ai-response-body.streaming > * { opacity: 0; transform: translateY(6px); transition: opacity 200ms ease, transform 200ms ease; }
@@ -333,10 +376,10 @@ tailwind.config = {
     </div>
 
     <!-- 푸시 알림 (시뮬레이션 — 위에서 슬라이드 인) -->
-    <div id="phonePush" class="absolute top-10 left-3 right-3 z-30 opacity-0 pointer-events-none" style="transform:translateY(-100%);transition:all 400ms cubic-bezier(0.34,1.56,0.64,1)">
+    <div id="phonePush" class="absolute top-10 left-3 right-3 z-[999] opacity-0 pointer-events-none" style="transform:translateY(-100%);transition:all 400ms cubic-bezier(0.34,1.56,0.64,1)">
       <div onclick="phonePushTap()" class="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl p-4 flex items-center gap-3 cursor-pointer active:scale-[0.98] transition-transform" style="border:1px solid rgba(255,255,255,0.3)">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center flex-shrink-0 overflow-hidden">
-          <span class="text-lg w-full h-full" id="phonePushEmoji"><img src="floki.png" alt="플로키" class="w-full h-full object-cover rounded-xl"></span>
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center flex-shrink-0">
+          <span class="text-white text-xs font-bold">flow</span>
         </div>
         <div class="flex-1 min-w-0">
           <div class="flex items-center justify-between">
@@ -347,7 +390,7 @@ tailwind.config = {
             <span class="text-[10px] text-gray-400">지금</span>
           </div>
           <p class="text-sm font-medium text-gray-900 mt-0.5" id="phonePushTitle">좋은 아침이에요! 오전 브리핑 도착 📋</p>
-          <p class="text-xs text-gray-500 mt-0.5 truncate" id="phonePushSub">오늘 일정 3건, 마감 업무 2건, 퇴근 후 변경 10건을 정리했어요.</p>
+          <p class="text-xs text-gray-500 mt-0.5 truncate" id="phonePushSub">오늘 일정 3건, 해야할 업무 4건, 확인할 업무 2건, 퇴근 후 변경 10건을 정리했어요.</p>
         </div>
       </div>
       <p id="phonePushHint" class="text-center text-[10px] text-white/40 mt-2">탭하여 브리핑 확인</p>
@@ -494,9 +537,7 @@ tailwind.config = {
       <!-- AI 비서 (핵심 메뉴) -->
       <button onclick="toggleSidebar();enterAssistant()" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-brand-50 transition-colors text-left group">
         <div class="flex items-center gap-3">
-          <div class="w-5 h-5 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center flex-shrink-0 overflow-hidden">
-            <span class="text-[10px] w-full h-full" id="sidebarCharEmoji"><img src="floki.png" alt="플로키" class="w-full h-full rounded-full object-cover"></span>
-          </div>
+          <svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
           <span class="text-sm text-gray-700 font-medium">AI 비서</span>
         </div>
         <div class="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
@@ -537,10 +578,6 @@ tailwind.config = {
             <span class="text-[10px] text-brand-500 bg-brand-50 px-1.5 py-0.5 rounded font-medium">책임</span>
           </div>
           <p class="text-xs text-gray-400">PM3팀</p>
-        </div>
-        <!-- 캐릭터 미니 아이콘 -->
-        <div id="sidebarProfileChar" class="w-6 h-6 rounded-full flex items-center justify-center overflow-hidden" style="background:#FFE4F0">
-          <span class="text-xs w-full h-full" id="sidebarProfileCharEmoji"><img src="floki.png" alt="플로키" class="w-full h-full rounded-full object-cover"></span>
         </div>
       </button>
     </div>
@@ -610,56 +647,18 @@ tailwind.config = {
         <div id="stepDot2" class="w-8 h-1.5 rounded-full bg-gray-200 transition-colors"></div>
         <div id="stepDot3" class="w-8 h-1.5 rounded-full bg-gray-200 transition-colors"></div>
         <div id="stepDot4" class="w-8 h-1.5 rounded-full bg-gray-200 transition-colors"></div>
-        <div id="stepDot5" class="w-8 h-1.5 rounded-full bg-gray-200 transition-colors"></div>
       </div>
 
-    <!-- Step 1: 캐릭터 선택 -->
+    <!-- Step 1: 브리핑 스타일 선택 -->
     <div id="onboardStep1" class="flex-1 overflow-y-auto px-6 pt-6 pb-4">
       <div class="text-center mb-2">
-        <h2 class="text-2xl font-bold text-gray-900">AI 캐릭터를 선택하세요</h2>
-        <p class="mt-2 text-sm text-gray-500">나만의 AI 파트너를 골라보세요.<br>나중에 언제든 바꿀 수 있어요.</p>
+        <div class="flex justify-center mb-4" id="onboardAvatar"></div>
+        <h2 class="text-2xl font-bold text-gray-900">브리핑 스타일을 골라주세요</h2>
+        <p class="mt-2 text-sm text-gray-500">브리핑, 일정 준비, 리포트 등<br>정보를 분석하고 전달하는 방식이 달라져요.</p>
       </div>
 
-      <div class="mt-8 space-y-4">
-        <!-- 플로키 -->
-        <button onclick="selectCharacter('floki')" id="char-floki" class="char-card w-full flex items-center gap-4 p-4 border-2 border-gray-200 rounded-2xl text-left">
-          <div class="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 overflow-hidden" style="background: linear-gradient(135deg, #FFD1E8, #FFA3C7)">
-            <img src="floki.png" alt="플로키" class="w-full h-full object-cover rounded-2xl">
-          </div>
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2">
-              <span class="text-[14px] font-bold text-gray-900">플로키</span>
-              <span class="text-[12px] text-pink-500 bg-pink-50 px-2 py-0.5 rounded-full font-medium">인기</span>
-            </div>
-            <p class="text-[12px] text-gray-500 mt-1">호기심 많은 바다 탐험가</p>
-          </div>
-        </button>
-
-        <!-- 펭귀니 -->
-        <button onclick="selectCharacter('penguin')" id="char-penguin" class="char-card w-full flex items-center gap-4 p-4 border-2 border-gray-200 rounded-2xl text-left">
-          <div class="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0" style="background: linear-gradient(135deg, #D1E8FF, #8EC5FC)">
-            <span class="text-3xl">🐧</span>
-          </div>
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2">
-              <span class="text-[14px] font-bold text-gray-900">펭귀니</span>
-            </div>
-            <p class="text-[12px] text-gray-500 mt-1">남극에서 온 업무 도우미</p>
-          </div>
-        </button>
-
-        <!-- 거북이 -->
-        <button onclick="selectCharacter('turtle')" id="char-turtle" class="char-card w-full flex items-center gap-4 p-4 border-2 border-gray-200 rounded-2xl text-left">
-          <div class="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0" style="background: linear-gradient(135deg, #D1FFE8, #8EFCB3)">
-            <span class="text-3xl">🐢</span>
-          </div>
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2">
-              <span class="text-[14px] font-bold text-gray-900">거북이</span>
-            </div>
-            <p class="text-[12px] text-gray-500 mt-1">믿음직한 숲속 길잡이</p>
-          </div>
-        </button>
+      <div class="mt-8 space-y-3" id="personalityList">
+        <!-- 성격 옵션들 (JS에서 렌더링) -->
       </div>
 
       <button id="onboardNextBtn" onclick="goToStep2()" disabled
@@ -671,32 +670,8 @@ tailwind.config = {
       </button>
     </div>
 
-    <!-- Step 2: 성격 선택 -->
+    <!-- Step 2: 오전 브리핑 알림 설정 -->
     <div id="onboardStep2" class="flex-1 overflow-y-auto px-6 pt-6 pb-4" style="display:none">
-      <div class="text-center mb-2">
-        <div class="w-20 h-20 rounded-full mx-auto flex items-center justify-center mb-4 overflow-hidden" id="step2CharBg" style="background: linear-gradient(135deg, #FFD1E8, #FFA3C7)">
-          <span class="text-4xl w-full h-full" id="step2CharEmoji"><img src="floki.png" alt="플로키" class="w-full h-full rounded-full object-cover"></span>
-        </div>
-        <h2 class="text-2xl font-bold text-gray-900">비서 스타일을 골라주세요</h2>
-        <p class="mt-2 text-sm text-gray-500">브리핑, 일정 준비, 리포트 등<br>정보를 분석하고 전달하는 방식이 달라져요.</p>
-      </div>
-
-      <div class="mt-8 space-y-3" id="personalityList">
-        <!-- 성격 옵션들 (JS에서 렌더링) -->
-      </div>
-
-      <button id="onboardCompleteBtn" onclick="goToStep3()" disabled
-        class="w-full mt-6 py-3.5 bg-gray-200 text-gray-400 font-medium rounded-xl transition-all duration-200 disabled:cursor-not-allowed">
-        다음
-      </button>
-      <button onclick="goToStep1()" class="w-full mt-3 py-2 text-sm text-gray-400 hover:text-gray-600 transition-colors flex items-center justify-center gap-1">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-        캐릭터 다시 선택
-      </button>
-    </div>
-
-    <!-- Step 3: 오전 브리핑 알림 설정 -->
-    <div id="onboardStep3" class="flex-1 overflow-y-auto px-6 pt-6 pb-4" style="display:none">
       <div class="text-center mb-6">
         <div class="w-16 h-16 rounded-2xl bg-amber-50 mx-auto flex items-center justify-center mb-4">
           <svg class="w-8 h-8 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
@@ -735,18 +710,18 @@ tailwind.config = {
         </div>
       </div>
 
-      <button onclick="goToStep4()"
+      <button onclick="goToStep3()"
         class="w-full mt-6 py-3.5 bg-brand-500 hover:bg-brand-600 text-white font-medium rounded-xl transition-all duration-200">
         다음
       </button>
-      <button onclick="goToStep2()" class="w-full mt-3 py-2 text-sm text-gray-400 hover:text-gray-600 transition-colors flex items-center justify-center gap-1">
+      <button onclick="goToStep1()" class="w-full mt-3 py-2 text-sm text-gray-400 hover:text-gray-600 transition-colors flex items-center justify-center gap-1">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
         이전
       </button>
     </div>
 
-    <!-- Step 4: 일정 브리핑 설정 -->
-    <div id="onboardStep4" class="flex-1 overflow-y-auto px-6 pt-6 pb-4" style="display:none">
+    <!-- Step 3: 일정 브리핑 설정 -->
+    <div id="onboardStep3" class="flex-1 overflow-y-auto px-6 pt-6 pb-4" style="display:none">
       <div class="text-center mb-6">
         <div class="w-16 h-16 rounded-2xl bg-blue-50 mx-auto flex items-center justify-center mb-4">
           <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -783,18 +758,18 @@ tailwind.config = {
         </div>
       </div>
 
-      <button onclick="goToStep5()"
+      <button onclick="goToStep4()"
         class="w-full mt-6 py-3.5 bg-brand-500 hover:bg-brand-600 text-white font-medium rounded-xl transition-all duration-200">
         다음
       </button>
-      <button onclick="goToStep3()" class="w-full mt-3 py-2 text-sm text-gray-400 hover:text-gray-600 transition-colors flex items-center justify-center gap-1">
+      <button onclick="goToStep2()" class="w-full mt-3 py-2 text-sm text-gray-400 hover:text-gray-600 transition-colors flex items-center justify-center gap-1">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
         이전
       </button>
     </div>
 
-    <!-- Step 5: 퇴근 브리핑 설정 -->
-    <div id="onboardStep5" class="flex-1 overflow-y-auto px-6 pt-6 pb-4" style="display:none">
+    <!-- Step 4: 퇴근 브리핑 설정 -->
+    <div id="onboardStep4" class="flex-1 overflow-y-auto px-6 pt-6 pb-4" style="display:none">
       <div class="text-center mb-6">
         <div class="w-16 h-16 rounded-2xl bg-green-50 mx-auto flex items-center justify-center mb-4">
           <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -827,7 +802,7 @@ tailwind.config = {
         class="w-full mt-6 py-3.5 bg-brand-500 hover:bg-brand-600 text-white font-medium rounded-xl transition-all duration-200">
         시작하기
       </button>
-      <button onclick="goToStep4()" class="w-full mt-3 py-2 text-sm text-gray-400 hover:text-gray-600 transition-colors flex items-center justify-center gap-1">
+      <button onclick="goToStep3()" class="w-full mt-3 py-2 text-sm text-gray-400 hover:text-gray-600 transition-colors flex items-center justify-center gap-1">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
         이전
       </button>
@@ -867,8 +842,7 @@ tailwind.config = {
       <button onclick="chatDetailBack()" class="p-2 text-gray-600 hover:text-gray-900 transition-colors">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
       </button>
-      <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 hidden" id="chatDetailAvatar">
-        <span class="text-sm w-full h-full" id="chatDetailAvatarEmoji"><img src="floki.png" alt="플로키" class="w-full h-full rounded-full object-cover"></span>
+      <div class="hidden" id="chatDetailAvatar">
       </div>
       <div class="flex-1 min-w-0">
         <p class="text-sm font-bold text-gray-900" id="chatDetailTitle">브리핑 리포트</p>
@@ -1049,26 +1023,9 @@ tailwind.config = {
         <p class="text-[14px] font-bold text-gray-900">AI 비서 설정</p>
       </div>
 
-      <!-- AI 캐릭터 -->
+      <!-- 브리핑 스타일 -->
       <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-        <div class="px-4 pt-3 pb-1"><p class="text-[12px] font-semibold text-gray-400 uppercase tracking-wider">AI 캐릭터</p></div>
-        <div class="flex items-center gap-4 px-4 py-3">
-          <div id="settingsCharBg" class="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 overflow-hidden" style="background: linear-gradient(135deg, #FFD1E8, #FFA3C7)">
-            <span class="text-2xl w-full h-full" id="settingsCharEmoji"><img src="floki.png" alt="플로키" class="w-full h-full object-cover rounded-2xl"></span>
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-[14px] font-bold text-gray-900" id="settingsCharName">플로키</p>
-            <p class="text-[12px] text-gray-500" id="settingsCharDesc">따뜻하고 다정한 AI 파트너</p>
-          </div>
-        </div>
-        <div class="px-4 pb-4 flex gap-2" id="settingsCharList">
-          <!-- JS에서 렌더링 -->
-        </div>
-      </div>
-
-      <!-- 비서 스타일 -->
-      <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-        <div class="px-4 pt-3 pb-1"><p class="text-[12px] font-semibold text-gray-400 uppercase tracking-wider">비서 스타일</p></div>
+        <div class="px-4 pt-3 pb-1"><p class="text-[12px] font-semibold text-gray-400 uppercase tracking-wider">브리핑 스타일</p></div>
         <div class="px-4 py-3" id="settingsPersonalityList">
           <!-- JS에서 렌더링 -->
         </div>
@@ -1081,18 +1038,6 @@ tailwind.config = {
 
 <script>
 // ─── Character & Personality Data ───────────────────
-const CHARACTERS = {
-  floki:   { name:'플로키',  emoji:'🐙', img:'floki.png', bg:'linear-gradient(135deg, #FFD1E8, #FFA3C7)', dotBg:'#FFE4F0', desc:'호기심 많은 바다 탐험가' },
-  penguin: { name:'펭귀니', emoji:'🐧', bg:'linear-gradient(135deg, #D1E8FF, #8EC5FC)', dotBg:'#E0EEFF', desc:'남극에서 온 업무 도우미' },
-  turtle:  { name:'거북이',  emoji:'🐢', bg:'linear-gradient(135deg, #D1FFE8, #8EFCB3)', dotBg:'#E0FFE8', desc:'믿음직한 숲속 길잡이' },
-};
-
-// ─── Helper: 캐릭터 아이콘 (이미지 또는 이모지) ──────────
-function charIcon(c, sizeClass) {
-  if (c.img) return `<img src="${c.img}" alt="${c.name}" class="${sizeClass} rounded-full object-cover">`;
-  return `<span class="${sizeClass}">${c.emoji}</span>`;
-}
-
 const PERSONALITIES = [
   { id:'summary',    label:'요약형',   icon:'📋', desc:'핵심만 간결하게 정리해서 전달해요' },
   { id:'analysis',   label:'분석형',   icon:'📊', desc:'데이터와 근거를 기반으로 상세히 분석해요' },
@@ -1102,11 +1047,9 @@ const PERSONALITIES = [
 
 // ─── State ────────────────────────────────────────────
 const state = {
-  character: localStorage.getItem('flowai_character') || null,
   personality: localStorage.getItem('flowai_personality') || null,
   isCustomized: localStorage.getItem('flowai_customized') === 'true',
   // 온보딩 임시
-  onboardChar: null,
   onboardPersonality: null,
   // 리마인더 설정 (프로토타입용)
   reminderSettings: {},
@@ -1134,10 +1077,12 @@ const BRIEFING = {
       external: true, company: '넥스트랩' },
   ],
   tasks: [
-    { id:'task-001', title:'Q2 보고서 작성', due:'오늘 마감', priority:'URGENT', path:['FlowAI 마케팅','Q2 캠페인'], status:'진행중' },
-    { id:'task-002', title:'고객사 피드백 정리', due:'오늘 마감', priority:'HIGH', path:['FlowAI QA 🔧','플로우 AI 별도앱 QA','스마트비서 기획'], status:'요청' },
-    { id:'task-003', title:'디자인 리뷰 피드백', due:'내일 마감', priority:'NORMAL', path:['FlowAI QA 🔧','UI 컴포넌트 검수'], status:'진행중' },
-    { id:'task-004', title:'경쟁사 분석 보고서', due:'1일 지연', priority:'NORMAL', path:['FlowAI 마케팅','시장 분석'], status:'진행중', overdueDays:1 },
+    { id:'task-001', title:'Q2 보고서 작성', due:'오늘 마감', priority:'URGENT', path:['FlowAI 마케팅','Q2 캠페인'], status:'진행중', role:'assignee' },
+    { id:'task-002', title:'고객사 피드백 정리', due:'오늘 마감', priority:'HIGH', path:['FlowAI QA 🔧','플로우 AI 별도앱 QA','스마트비서 기획'], status:'요청', role:'assignee' },
+    { id:'task-003', title:'디자인 리뷰 피드백', due:'내일 마감', priority:'NORMAL', path:['FlowAI QA 🔧','UI 컴포넌트 검수'], status:'진행중', role:'assignee' },
+    { id:'task-004', title:'경쟁사 분석 보고서', due:'1일 지연', priority:'NORMAL', path:['FlowAI 마케팅','시장 분석'], status:'진행중', overdueDays:1, role:'assignee' },
+    { id:'task-005', title:'UX 리서치 보고서 정리', due:'오늘 마감', priority:'HIGH', path:['FlowAI QA 🔧','UX 리서치'], status:'진행중', role:'requester', assignee:'최디자인' },
+    { id:'task-006', title:'서버 모니터링 대시보드 구축', due:'내일 마감', priority:'NORMAL', path:['FlowAI QA 🔧','인프라'], status:'요청', role:'requester', assignee:'박개발' },
   ],
   // 지연 업무 (3일 이상) — 오전 브리핑 섹션 B-2
   overdueTasks: [
@@ -1206,6 +1151,16 @@ const BRIEFING_CTA = {
   'task-003': {
     summary: '디자인 리뷰 피드백이 내일까지예요. 디자인팀이 공유한 시안을 확인하고 피드백 템플릿을 만들어드릴까요?',
     action: { label: '피드백 템플릿 생성', icon: '📝' },
+    link: { label: '바로가기', icon: '📋', target: '업무' },
+  },
+  'task-005': {
+    summary: '최디자인님에게 요청한 UX 리서치 보고서 정리가 오늘 마감이에요. 진행 상황을 확인해보세요.',
+    action: { label: '진행 상황 확인', icon: '👀' },
+    link: { label: '바로가기', icon: '📋', target: '업무' },
+  },
+  'task-006': {
+    summary: '박개발님에게 요청한 서버 모니터링 대시보드 구축이 내일까지에요. 아직 미착수 상태니 확인해보세요.',
+    action: { label: '진행 상황 확인', icon: '👀' },
     link: { label: '바로가기', icon: '📋', target: '업무' },
   },
   'att-002': {
@@ -1295,16 +1250,17 @@ function avatarStack(names, maxShow = 4) {
   return html;
 }
 
-// ─── Helper: 캐릭터/성격 정보 가져오기 ──────────────
-function getChar() {
-  return CHARACTERS[state.character] || CHARACTERS.floki;
-}
+// ─── Helper: 성격 정보 가져오기 ──────────────
 function getPersonalityLabel() {
   const p = PERSONALITIES.find(p => p.id === state.personality);
   return p ? p.label : '똑똑한';
 }
 
-function getContextualGreeting(c, pLabel) {
+function aiAvatar(size = '') {
+  return `<div class="ai-avatar ${size}"><div class="ai-avatar-visor"><span class="ai-avatar-eye"></span><span class="ai-avatar-eye"></span></div></div>`;
+}
+
+function getContextualGreeting() {
   const hour = new Date().getHours();
   const name = '신주경';
 
@@ -1346,7 +1302,7 @@ function showScreen(id) {
   document.getElementById(id).classList.add('active');
 
   if (id === 'scr-100') updateHomeScreen();
-  // scr-settings: 비서 설정 (알림 + 캐릭터/대화 스타일 통합)
+  // scr-settings: 비서 설정 (알림 + 브리핑 스타일)
 }
 
 // ─── Profile Menu (사이드바 프로필 클릭) ──────────────
@@ -1363,32 +1319,7 @@ function openProfileMenu() {
 }
 
 function initSettingsScreen() {
-  const c = getChar();
-
-  // 현재 캐릭터 표시
-  document.getElementById('settingsCharEmoji').innerHTML = charIcon(c, 'text-2xl w-full h-full');
-  document.getElementById('settingsCharBg').style.background = c.bg;
-  document.getElementById('settingsCharName').textContent = c.name;
-  document.getElementById('settingsCharDesc').textContent = c.desc;
-
-  // 캐릭터 선택 칩
-  const charList = document.getElementById('settingsCharList');
-  charList.innerHTML = '';
-  Object.entries(CHARACTERS).forEach(([id, ch]) => {
-    const isActive = id === state.character;
-    const btn = document.createElement('button');
-    btn.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium transition-all ' +
-      (isActive ? 'bg-brand-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200');
-    btn.innerHTML = `${ch.img ? '<img src="'+ch.img+'" class="w-5 h-5 rounded-full object-cover">' : '<span class="text-[12px]">'+ch.emoji+'</span>'}${ch.name}`;
-    btn.onclick = () => {
-      state.character = id;
-      localStorage.setItem('flowai_character', id);
-      initSettingsScreen();
-    };
-    charList.appendChild(btn);
-  });
-
-  // 성격 선택 리스트
+  // 브리핑 스타일 선택 리스트
   const pList = document.getElementById('settingsPersonalityList');
   pList.innerHTML = '';
   PERSONALITIES.forEach(pr => {
@@ -1406,7 +1337,7 @@ function initSettingsScreen() {
     btn.onclick = () => {
       state.personality = pr.id;
       localStorage.setItem('flowai_personality', pr.id);
-      showToast(`비서 스타일이 '${pr.label}'(으)로 변경되었어요`);
+      showToast(`브리핑 스타일이 '${pr.label}'(으)로 변경되었어요`);
       initSettingsScreen();
     };
     pList.appendChild(btn);
@@ -1415,9 +1346,7 @@ function initSettingsScreen() {
 
 // ─── Onboarding ──────────────────────────────────────
 function resetOnboarding() {
-  state.onboardChar = null;
   state.onboardPersonality = null;
-  document.querySelectorAll('.char-card').forEach(c => c.classList.remove('selected'));
   document.getElementById('onboardNextBtn').disabled = true;
   document.getElementById('onboardNextBtn').className = 'w-full mt-6 py-3.5 bg-gray-200 text-gray-400 font-medium rounded-xl transition-all duration-200 disabled:cursor-not-allowed';
   // 알림 토글 초기화
@@ -1444,53 +1373,34 @@ function startOnboardingSteps() {
   goToStep1();
 }
 
-function selectCharacter(charId) {
-  state.onboardChar = charId;
-  document.querySelectorAll('.char-card').forEach(c => c.classList.remove('selected'));
-  document.getElementById('char-' + charId).classList.add('selected');
-  const btn = document.getElementById('onboardNextBtn');
-  btn.disabled = false;
-  btn.className = 'w-full mt-6 py-3.5 bg-brand-500 hover:bg-brand-600 text-white font-medium rounded-xl transition-all duration-200';
-}
-
 function setOnboardStep(n) {
-  for (let i = 1; i <= 5; i++) {
+  for (let i = 1; i <= 4; i++) {
     document.getElementById('onboardStep' + i).style.display = i === n ? '' : 'none';
     document.getElementById('stepDot' + i).className = 'w-8 h-1.5 rounded-full transition-colors ' + (i <= n ? 'bg-brand-500' : 'bg-gray-200');
   }
 }
 
 function goToStep1() {
+  // 아바타 + 브리핑 스타일 선택
+  document.getElementById('onboardAvatar').innerHTML = aiAvatar('lg');
+  renderPersonalityOptions('personalityList', 'onboard');
   setOnboardStep(1);
+  state.onboardPersonality = null;
+  document.getElementById('onboardNextBtn').disabled = true;
+  document.getElementById('onboardNextBtn').className = 'w-full mt-6 py-3.5 bg-gray-200 text-gray-400 font-medium rounded-xl transition-all duration-200 disabled:cursor-not-allowed';
 }
 
 function goToStep2() {
-  if (!state.onboardChar) return;
-  const c = CHARACTERS[state.onboardChar];
-  document.getElementById('step2CharEmoji').innerHTML = charIcon(c, 'text-4xl w-full h-full');
-  document.getElementById('step2CharBg').style.background = c.bg;
-
-  // 성격 옵션 렌더링
-  renderPersonalityOptions('personalityList', 'onboard');
-
+  if (!state.onboardPersonality) return;
   setOnboardStep(2);
-
-  state.onboardPersonality = null;
-  document.getElementById('onboardCompleteBtn').disabled = true;
-  document.getElementById('onboardCompleteBtn').className = 'w-full mt-6 py-3.5 bg-gray-200 text-gray-400 font-medium rounded-xl transition-all duration-200 disabled:cursor-not-allowed';
 }
 
 function goToStep3() {
-  if (!state.onboardPersonality) return;
   setOnboardStep(3);
 }
 
 function goToStep4() {
   setOnboardStep(4);
-}
-
-function goToStep5() {
-  setOnboardStep(5);
 }
 
 function toggleOnboardReminder(key, btn) {
@@ -1543,7 +1453,7 @@ function selectPersonality(pId, context, btnEl) {
 
   if (context === 'onboard') {
     state.onboardPersonality = pId;
-    const btn = document.getElementById('onboardCompleteBtn');
+    const btn = document.getElementById('onboardNextBtn');
     btn.disabled = false;
     btn.className = 'w-full mt-6 py-3.5 bg-brand-500 hover:bg-brand-600 text-white font-medium rounded-xl transition-all duration-200';
   } else {
@@ -1552,11 +1462,9 @@ function selectPersonality(pId, context, btnEl) {
 }
 
 function completeOnboarding() {
-  if (!state.onboardChar || !state.onboardPersonality) return;
-  state.character = state.onboardChar;
+  if (!state.onboardPersonality) return;
   state.personality = state.onboardPersonality;
   state.isCustomized = true;
-  localStorage.setItem('flowai_character', state.character);
   localStorage.setItem('flowai_personality', state.personality);
   localStorage.setItem('flowai_customized', 'true');
 
@@ -1573,19 +1481,17 @@ function completeOnboarding() {
   const schedTime = document.getElementById('ob-schedules-time');
   if (schedTime) localStorage.setItem('flowai_schedules_time', schedTime.value);
 
-  showToast(`${getChar().name}와 함께 시작해요!`);
+  showToast('AI 비서 설정이 완료되었어요!');
   resumeAfterOnboarding();
 }
 
 function skipOnboarding() {
   // 기본값 설정
-  state.character = 'floki';
   state.personality = 'summary';
   state.isCustomized = true;
-  localStorage.setItem('flowai_character', 'floki');
   localStorage.setItem('flowai_personality', 'summary');
   localStorage.setItem('flowai_customized', 'true');
-  showToast('플로키가 기본 캐릭터로 설정되었어요');
+  showToast('기본 스타일(요약형)로 설정되었어요');
   resumeAfterOnboarding();
 }
 
@@ -1613,11 +1519,6 @@ function resumeAfterOnboarding() {
 
 // ─── Home Screen ──────────────────────────────────────
 function updateHomeScreen() {
-  const c = getChar();
-  document.getElementById('sidebarCharEmoji').innerHTML = charIcon(c, 'text-[10px] w-full h-full');
-  document.getElementById('sidebarProfileCharEmoji').innerHTML = charIcon(c, 'text-xs w-full h-full');
-  document.getElementById('sidebarProfileChar').style.background = c.dotBg;
-
   // 시나리오 시계 표시
   const clockEl = document.getElementById('scenarioClock');
   const sc = state.currentScenario;
@@ -1636,8 +1537,6 @@ function updateHomeScreen() {
 
 function renderAssistantHome() {
   const home = document.getElementById('assistantHome');
-  const c = getChar();
-  const pLabel = getPersonalityLabel();
 
   // ── 모든 알림 항목을 자연어 제목으로 생성 ──
   let allRooms = [];
@@ -1751,25 +1650,18 @@ function renderAssistantHome() {
   let html = '';
   let itemIdx = 0;
 
-  // ── 프로필 카드 (상단) + 감성 멘트 ──
-  const greetings = getContextualGreeting(c, pLabel);
+  // ── 인사말 (상단) ──
+  const greetings = getContextualGreeting();
   html += `
-    <div class="px-5 py-5 bg-gradient-to-r from-brand-50/50 to-white">
-      <div class="flex items-center gap-3">
-        <div class="w-14 h-14 rounded-full flex items-center justify-center shadow-md flex-shrink-0 overflow-hidden" style="background:${c.bg}">
-          ${charIcon(c, 'text-3xl w-full h-full')}
-        </div>
-        <div class="flex-1 min-w-0">
-          <p class="text-base font-bold text-gray-900">당신의 ${pLabel} AI 비서 ${c.name}에요!</p>
-          <p class="text-sm text-gray-500 mt-1">${greetings}</p>
-        </div>
-      </div>
+    <div class="px-5 pt-5 pb-3 flex items-start gap-3">
+      ${aiAvatar()}
+      <p class="text-[15px] leading-relaxed text-gray-800 font-medium pt-0.5">${greetings}</p>
     </div>`;
 
   // ── 새 알림 카드 ──
   if (newRooms.length > 0) {
     html += `<div class="px-4 pt-4 pb-2 space-y-3">`;
-    newRooms.forEach(room => { html += renderNewCard(room, c, itemIdx++); });
+    newRooms.forEach(room => { html += renderNewCard(room, itemIdx++); });
     html += `</div>`;
   } else {
     html += `
@@ -1788,22 +1680,17 @@ function renderAssistantHome() {
 }
 
 // ── 새 알림 카드 렌더링 ──
-function renderNewCard(room, c, index) {
+function renderNewCard(room, index) {
   return `
     <button onclick="openNotificationChat('${room.id}')" class="w-full bg-white rounded-2xl border border-brand-100 shadow-sm hover:shadow-md hover:border-brand-200 active:scale-[0.98] transition-all text-left animate-fade-in overflow-hidden" style="animation-delay:${index * 60}ms">
       <div class="px-4 pt-4 pb-3">
-        <div class="flex items-start gap-3">
-          <div class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 overflow-hidden" style="background:${c.bg}">
-            ${charIcon(c, 'text-base w-full h-full')}
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[11px] text-brand-500 font-semibold">${room.time}</span>
+            <span class="w-2 h-2 rounded-full bg-brand-500 flex-shrink-0"></span>
           </div>
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center justify-between mb-1">
-              <span class="text-[11px] text-brand-500 font-semibold">${room.time}</span>
-              <span class="w-2 h-2 rounded-full bg-brand-500 flex-shrink-0"></span>
-            </div>
-            <p class="text-sm font-bold text-gray-900 leading-snug">${room.title}</p>
-            <p class="text-xs text-gray-500 mt-1">${room.action}</p>
-          </div>
+          <p class="text-sm font-bold text-gray-900 leading-snug">${room.title}</p>
+          <p class="text-xs text-gray-500 mt-1">${room.action}</p>
         </div>
       </div>
       <div class="px-4 py-2.5 bg-brand-50/50 border-t border-brand-100/50 flex items-center justify-between">
@@ -1850,16 +1737,9 @@ function renderStaleListItem(room, index) {
 
 // ── 채팅방 진입 ──
 function openNotificationChat(notifId) {
-  const c = getChar();
   const area = document.getElementById('chatDetailArea');
   const titleEl = document.getElementById('chatDetailTitle');
   const subtitleEl = document.getElementById('chatDetailSubtitle');
-  const avatarEl = document.getElementById('chatDetailAvatar');
-  const emojiEl = document.getElementById('chatDetailAvatarEmoji');
-
-  // 헤더 아바타 설정
-  avatarEl.style.background = c.bg;
-  emojiEl.innerHTML = charIcon(c, 'text-sm w-full h-full');
 
   // 날짜 포맷 헬퍼
   const now = new Date();
@@ -1871,22 +1751,22 @@ function openNotificationChat(notifId) {
   if (notifId === 'briefing') {
     titleEl.textContent = `${dateStr} ${SCENARIO_DATA.morning.pushTitle}`;
     subtitleEl.textContent = '';
-    chatHtml = renderBriefingChat(c);
+    chatHtml = renderBriefingChat();
   } else if (notifId === 'wrapup') {
     titleEl.textContent = `${dateStr} ${SCENARIO_DATA.evening.pushTitle}`;
     subtitleEl.textContent = '';
-    chatHtml = renderWrapUpChat(c);
+    chatHtml = renderWrapUpChat();
   } else if (notifId.startsWith('sch-')) {
     const schedule = BRIEFING.schedules.find(s => s.id === notifId);
     if (schedule) {
       titleEl.textContent = `📅 ${schedule.title} 준비`;
       subtitleEl.textContent = dateStr;
-      chatHtml = renderScheduleItemChat(c, schedule);
+      chatHtml = renderScheduleItemChat(schedule);
     }
   } else if (notifId.startsWith('hist-')) {
     titleEl.textContent = '지난 대화';
     subtitleEl.textContent = '';
-    chatHtml = renderHistoryChat(c, notifId);
+    chatHtml = renderHistoryChat(notifId);
   }
 
   // 읽음 처리
@@ -1897,11 +1777,13 @@ function openNotificationChat(notifId) {
   area.innerHTML = chatHtml;
   injectBubbleTimes(area);
   showScreen('scr-110');
+  // 상단부터 보이도록 스크롤 초기화
+  area.scrollTop = 0;
   setTimeout(() => revealBubblesSequentially(area), 200);
 }
 
 // ── 오전 브리핑 채팅 ──
-function renderBriefingChat(c) {
+function renderBriefingChat() {
   const S = BRIEFING.schedules;
   const T = BRIEFING.tasks;
   const abs = BRIEFING.absence;
@@ -1964,7 +1846,7 @@ function renderBriefingChat(c) {
 
   // ── AI 응답 시작 (헤더 → 검색/조회 → 본문) ──
   let html = '';
-  html += renderAiResponseStart(c, queryHtml);
+  html += renderAiResponseStart(queryHtml);
 
   // 인사
   html += aiText(`신주경님, 좋은 아침이에요! 오늘 하루를 쭉 살펴봤어요.\n\n---`);
@@ -2003,51 +1885,24 @@ function renderBriefingChat(c) {
     `).join(''));
   }
 
-  // ── 마감 업무: 자연어 분석 + 카드 ──
+  // ── 마감 업무: 내가 해야할 업무 + 내가 확인해야할 업무 ──
   if (T.length > 0) {
     const P = PRIORITY_STYLES;
-    const requestTasks = T.filter(t => t.status === '요청');
-    let taskAnalysis = `### 📋 오늘 해야 하는 업무 ${T.length}건\n\n`;
-    if (todayTasks.length > 0) {
-      taskAnalysis += `오늘 마감 업무가 ${todayTasks.length}건 있어요.\n\n`;
-      if (requestTasks.length > 0) {
-        taskAnalysis += `> 📌 **"${requestTasks[0].title}"**은 아직 미착수(요청) 상태에요. 먼저 확인해보세요.\n\n`;
-      }
-      const urgent = todayTasks.find(t => t.priority === 'URGENT');
-      if (urgent) {
-        const urgentCta = BRIEFING_CTA[urgent.id];
-        taskAnalysis += `> 🚨 **"${urgent.title}"**이 긴급이에요.\n\n`;
-        taskAnalysis += urgentCta ? `${urgentCta.summary} ` : '';
-        taskAnalysis += `이걸 오전 집중 시간에 먼저 처리하는 게 좋겠어요.\n\n`;
-      }
-      const high = todayTasks.find(t => t.priority === 'HIGH' && t.status !== '요청');
-      if (high) {
-        const highCta = BRIEFING_CTA[high.id];
-        taskAnalysis += `**"${high.title}"**도 오늘까지인데요, `;
-        taskAnalysis += highCta ? highCta.summary : '확인해보세요.';
-        taskAnalysis += '\n\n';
-      }
-    }
-    const laterTasks = T.filter(t => !t.due.includes('오늘') && !t.overdueDays);
-    const shortOverdue = T.filter(t => t.overdueDays && t.overdueDays <= 2);
-    if (shortOverdue.length > 0) {
-      taskAnalysis += `⚠️ **"${shortOverdue[0].title}"**은 ${shortOverdue[0].overdueDays}일 지연 상태에요. 오늘 중으로 처리하거나, 이미 완료했다면 상태를 바꿔주세요.\n\n`;
-    }
-    if (laterTasks.length > 0) {
-      taskAnalysis += `**"${laterTasks[0].title}"**은 ${laterTasks[0].due}이라 여유 있지만, 오늘 틈날 때 미리 봐두면 내일이 편해져요.`;
-    }
-    html += aiText(taskAnalysis);
+    const myTasks = T.filter(t => t.role !== 'requester');
+    const checkTasks = T.filter(t => t.role === 'requester');
+    const requestTasks = myTasks.filter(t => t.status === '요청');
 
-    // 업무 카드 위젯 (상태 뱃지 포함)
+    // 업무 카드 렌더 헬퍼
     const statusBadge = (status) => {
       if (status === '요청') return '<span class="inline-flex px-1.5 py-0.5 text-[10px] font-bold rounded-full status-request">📌 요청</span>';
       if (status === '진행중') return '<span class="inline-flex px-1.5 py-0.5 text-[10px] font-bold rounded-full status-progress">🔄 진행중</span>';
       return '';
     };
-    html += aiCard(T.map(t => {
+    const renderTaskCard = (t) => {
       const p = P[t.priority];
       const dueColor = t.due.includes('오늘') ? 'text-red-600 bg-red-50' : t.overdueDays ? 'text-red-700 bg-red-100' : 'text-yellow-600 bg-yellow-50';
       const dueLabel = t.overdueDays ? `${t.overdueDays}일 지연` : t.due;
+      const profileName = t.role === 'requester' ? t.assignee : '신주경';
       return `
       <div onclick="showToast('업무로 이동합니다')" class="py-2.5 border-b border-gray-100 last:border-0 cursor-pointer hover:bg-gray-50 -mx-1 px-1 rounded-lg transition-colors">
         <div class="flex items-center gap-1.5 mb-1 flex-wrap">
@@ -2061,12 +1916,59 @@ function renderBriefingChat(c) {
             <p class="text-xs text-gray-400 mt-0.5">${t.path.join(' > ')}</p>
           </div>
           <div class="flex items-center gap-1 flex-shrink-0 ml-2">
-            ${userProfile('신주경', { size: 'xs', showInfo: false })}
+            ${userProfile(profileName, { size: 'xs', showInfo: false })}
             <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
           </div>
         </div>
       </div>`;
-    }).join(''));
+    };
+
+    // ── 내가 해야할 업무 ──
+    if (myTasks.length > 0) {
+      const myTodayTasks = myTasks.filter(t => t.due.includes('오늘'));
+      let taskAnalysis = `### 📋 내가 해야할 업무 ${myTasks.length}건\n\n`;
+      if (myTodayTasks.length > 0) {
+        taskAnalysis += `오늘 마감 업무가 ${myTodayTasks.length}건 있어요.\n\n`;
+        if (requestTasks.length > 0) {
+          taskAnalysis += `> 📌 **"${requestTasks[0].title}"**은 아직 미착수(요청) 상태에요. 먼저 확인해보세요.\n\n`;
+        }
+        const urgent = myTodayTasks.find(t => t.priority === 'URGENT');
+        if (urgent) {
+          const urgentCta = BRIEFING_CTA[urgent.id];
+          taskAnalysis += `> 🚨 **"${urgent.title}"**이 긴급이에요.\n\n`;
+          taskAnalysis += urgentCta ? `${urgentCta.summary} ` : '';
+          taskAnalysis += `이걸 오전 집중 시간에 먼저 처리하는 게 좋겠어요.\n\n`;
+        }
+        const high = myTodayTasks.find(t => t.priority === 'HIGH' && t.status !== '요청');
+        if (high) {
+          const highCta = BRIEFING_CTA[high.id];
+          taskAnalysis += `**"${high.title}"**도 오늘까지인데요, `;
+          taskAnalysis += highCta ? highCta.summary : '확인해보세요.';
+          taskAnalysis += '\n\n';
+        }
+      }
+      const laterTasks = myTasks.filter(t => !t.due.includes('오늘') && !t.overdueDays);
+      const shortOverdue = myTasks.filter(t => t.overdueDays && t.overdueDays <= 2);
+      if (shortOverdue.length > 0) {
+        taskAnalysis += `⚠️ **"${shortOverdue[0].title}"**은 ${shortOverdue[0].overdueDays}일 지연 상태에요. 오늘 중으로 처리하거나, 이미 완료했다면 상태를 바꿔주세요.\n\n`;
+      }
+      if (laterTasks.length > 0) {
+        taskAnalysis += `**"${laterTasks[0].title}"**은 ${laterTasks[0].due}이라 여유 있지만, 오늘 틈날 때 미리 봐두면 내일이 편해져요.`;
+      }
+      html += aiText(taskAnalysis);
+      html += aiCard(myTasks.map(renderTaskCard).join(''));
+    }
+
+    // ── 내가 확인해야할 업무 ──
+    if (checkTasks.length > 0) {
+      let checkAnalysis = `### 👀 내가 확인해야할 업무 ${checkTasks.length}건\n\n`;
+      checkTasks.forEach(t => {
+        const statusText = t.status === '요청' ? '아직 미착수 상태에요. 진행 상황을 확인해보세요.' : '진행 중이에요.';
+        checkAnalysis += `**${t.assignee}**님에게 요청한 **"${t.title}"**이 ${t.due}인데, ${statusText}\n\n`;
+      });
+      html += aiText(checkAnalysis);
+      html += aiCard(checkTasks.map(renderTaskCard).join(''));
+    }
   }
 
   // ── 지연 업무 리마인드 (섹션 B-2, 3일 이상 지연) ──
@@ -2162,11 +2064,11 @@ function renderBriefingChat(c) {
 }
 
 // ── 개별 마감 업무 채팅 ──
-function renderTaskItemChat(c, t) {
+function renderTaskItemChat(t) {
   const cta = BRIEFING_CTA[t.id];
   const P = PRIORITY_STYLES;
   const p = P[t.priority];
-  let html = renderAiResponseStart(c);
+  let html = renderAiResponseStart();
 
   // 1. 자연어 분석 (카드에 없는 인사이트만)
   if (t.priority === 'URGENT') {
@@ -2204,7 +2106,7 @@ function renderTaskItemChat(c, t) {
 }
 
 // ── 개별 일정 브리핑 채팅 ──
-function renderScheduleItemChat(c, s) {
+function renderScheduleItemChat(s) {
   const cta = BRIEFING_CTA[s.id];
 
   let html = '';
@@ -2259,7 +2161,7 @@ function renderScheduleItemChat(c, s) {
     ], `'${s.company}' 기업 정보, 최근 뉴스, 참석자 프로필 등 고객사 미팅 준비에 필요한 최신 정보를 웹에서 수집했습니다.`, '웹 검색 완료');
 
   // ── AI 응답 시작 (헤더 → 검색/조회 → 본문) ──
-  html += renderAiResponseStart(c, queryHtml);
+  html += renderAiResponseStart(queryHtml);
 
     // 1. 분석 결과 — 핵심 요약 + 동시 일정 충돌 자연어 안내
     let extConflict = '';
@@ -2386,7 +2288,7 @@ function renderScheduleItemChat(c, s) {
     ], null, '연관 결과 발견');
 
     // AI 응답 시작 (헤더 → 검색 → 본문)
-    html += renderAiResponseStart(c, internalQueryHtml);
+    html += renderAiResponseStart(internalQueryHtml);
 
     // 자연어로 통합 분석 (시간 안내 + 충돌 + 관련 자료 요약 + 준비 사항)
     const hour = parseInt(s.time.split(':')[0]);
@@ -2474,9 +2376,9 @@ function renderScheduleItemChat(c, s) {
 }
 
 // ── 개별 미회신 채팅 ──
-function renderAttentionItemChat(c, a) {
+function renderAttentionItemChat(a) {
   const cta = BRIEFING_CTA[a.id];
-  let html = renderAiResponseStart(c);
+  let html = renderAiResponseStart();
 
   // 1. 자연어 분석
   let urgency = '';
@@ -2517,8 +2419,8 @@ function renderAttentionItemChat(c, a) {
 }
 
 // ── 지난 대화 히스토리 채팅 ──
-function renderHistoryChat(c, histId) {
-  let html = renderAiResponseStart(c);
+function renderHistoryChat(histId) {
+  let html = renderAiResponseStart();
 
   if (histId === 'hist-1') {
     html += aiText(`어제의 오전 브리핑이에요. 일정 2건, 마감 업무 1건이 있었어요.`);
@@ -2569,11 +2471,11 @@ function renderHistoryChat(c, histId) {
 }
 
 // ── 오후 리마인더 채팅 (PM 1:30 — 스프린트 리뷰 30분 전) ──
-function renderReminderChat(c) {
+function renderReminderChat() {
   const S = BRIEFING.schedules;
   const review = S.find(s => s.id === 'sch-002');
   const T = BRIEFING.tasks;
-  let html = renderAiResponseStart(c);
+  let html = renderAiResponseStart();
 
   // 인사 + 리마인더
   html += aiText('신주경님, **스프린트 리뷰**가 30분 후에 시작돼요!\n\n미리 준비할 수 있도록 정리해드릴게요.');
@@ -2647,7 +2549,7 @@ function renderReminderChat(c) {
 }
 
 // ── 퇴근 브리핑 채팅 (PM 5:30) ──
-function renderWrapUpChat(c) {
+function renderWrapUpChat() {
   const T = BRIEFING.tasks;
   const S = BRIEFING.schedules;
 
@@ -2675,10 +2577,13 @@ function renderWrapUpChat(c) {
 
   // ── AI 응답 시작 (헤더 → 검색 → 본문) ──
   let html = '';
-  html += renderAiResponseStart(c, wrapUpQueryHtml);
+  html += renderAiResponseStart(wrapUpQueryHtml);
 
   // 인사
-  html += aiText('신주경님, 오늘 하루 수고 많으셨어요! 오늘의 업무 현황을 정리해드릴게요.\n\n---');
+  html += aiText('신주경님, 오늘 하루 수고 많으셨어요! 오늘의 업무 현황을 정리해드릴게요.');
+
+  // 오늘 하루 분석 (가장 먼저)
+  html += aiText('---\n\n### 📈 오늘 하루 분석\n\n오늘 **일정 3건** 모두 참석했고, **마감 업무 2건**을 시간 내에 완료했어요. 집중도 높은 하루였어요! 👏');
 
   // 오늘 업무 현황 — 브리핑과 동일한 업무 카드 컴포넌트
   const P = PRIORITY_STYLES;
@@ -2730,9 +2635,6 @@ function renderWrapUpChat(c) {
       </div>
     `);
   }
-
-  // 오늘 하루 분석
-  html += aiText('---\n\n### 📈 오늘 하루 분석\n\n오늘 **일정 3건** 모두 참석했고, **마감 업무 2건**을 시간 내에 완료했어요. 집중도 높은 하루였어요! 👏');
 
   // 미회신 알림
   html += aiText('\n> 아직 **이대리**님의 Q2 기획안 리뷰 요청에 회신을 못 하셨는데, 내일 오전에 처리하시면 어떨까요? 제가 답변 초안을 미리 작성해둘 수 있어요.');
@@ -3039,54 +2941,39 @@ function md(text) {
   // 이미 HTML 태그가 들어 있으면 (카드, 뱃지 등) 마크다운 파싱 스킵
   if (/<div|<span|<button|<svg|<img/.test(text)) return text;
   try {
-    return typeof marked.parse === 'function' ? marked.parse(text) : marked(text);
+    let processed = text.replace(/\*\*"([^"]+)"\*\*/g, '<strong>"$1"</strong>');
+    processed = processed.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    return typeof marked.parse === 'function' ? marked.parse(processed) : marked(processed);
   } catch (e) { return text; }
 }
 
 // ── 공통: AI 말풍선 렌더링 (레거시 — 동적 응답용) ──
-function renderAiBubble(c, content, isFirst = true) {
+function renderAiBubble(content, isFirst = true) {
   const parsed = md(content);
-  if (isFirst) {
-    return `
-    <div class="chat-bubble flex items-start gap-2.5" style="opacity:0">
-      <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 overflow-hidden" style="background:${c.bg}">
-        ${charIcon(c, 'text-sm w-full h-full')}
-      </div>
-      <div class="md-bubble bg-gray-50 border border-gray-100 px-4 py-3 rounded-2xl rounded-tl-md text-sm text-gray-900 max-w-[85%]">
+  return `
+    <div class="chat-bubble" style="opacity:0">
+      <div class="md-bubble bg-gray-50 border border-gray-100 px-4 py-3 rounded-2xl text-sm text-gray-900">
         ${parsed}
       </div>
     </div>`;
-  } else {
-    return `
-    <div class="chat-bubble flex items-start gap-2.5" style="opacity:0">
-      <div class="w-8 h-8 flex-shrink-0"></div>
-      <div class="md-bubble bg-gray-50 border border-gray-100 px-4 py-3 rounded-2xl rounded-tl-md text-sm text-gray-900 max-w-[85%]">
-        ${parsed}
-      </div>
-    </div>`;
-  }
 }
 
 // ── AI 응답 렌더링 (마크다운 스타일) ──
-function renderAiResponseStart(c, queryHtml) {
-  const timeStr = getScenarioBubbleTime();
+function renderAiResponseStart(queryHtml) {
+  const t = getScenarioBubbleTime();
   return `<div class="chat-bubble ai-response" style="opacity:0">
-    <div class="ai-header flex items-center gap-2.5">
-      <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden" style="background:${c.bg}">
-        ${charIcon(c, 'text-sm w-full h-full')}
-      </div>
-      <div class="flex items-center gap-2">
-        <span class="text-sm font-semibold text-gray-800">${c.name}</span>
-        <span class="text-xs text-gray-400">${timeStr}</span>
-      </div>
-    </div>
     ${queryHtml || ''}
-    <div class="ai-response-body streaming">`;
+    <div class="flex items-center gap-2 mb-2">
+      ${aiAvatar()}
+      <span class="text-sm font-semibold text-gray-900">AI 비서</span>
+      <span class="text-[11px] text-gray-400">${t}</span>
+    </div>
+    <div class="ai-response-body streaming" >`;
 }
 
 function renderAiResponseEnd() {
   return `
-    <div class="ai-feedback">
+    <div class="ai-feedback" >
       <button onclick="toggleFeedback(this,'up')" title="좋아요"><svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/></svg></button>
       <button onclick="toggleFeedback(this,'down')" title="아쉬워요"><svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 15v4a3 3 0 003 3l4-9V2H5.72a2 2 0 00-2 1.7l-1.38 9a2 2 0 002 2.3H10z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 2h3a2 2 0 012 2v7a2 2 0 01-2 2h-3"/></svg></button>
       <button onclick="copyAiResponse(this)" title="복사"><svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" stroke-width="1.5"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
@@ -3113,7 +3000,10 @@ function copyAiResponse(btn) {
 function aiText(content) {
   if (typeof marked === 'undefined') return content;
   try {
-    return typeof marked.parse === 'function' ? marked.parse(content) : marked(content);
+    // **"text"** 패턴을 marked가 인식할 수 있도록 <strong> 태그로 직접 변환
+    let processed = content.replace(/\*\*"([^"]+)"\*\*/g, '<strong>"$1"</strong>');
+    processed = processed.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    return typeof marked.parse === 'function' ? marked.parse(processed) : marked(processed);
   } catch (e) { return content; }
 }
 
@@ -3230,9 +3120,9 @@ function revealBubblesSequentially(area) {
     bubble.querySelectorAll('.flow-query-block').forEach(b => b.classList.add('fq-revealed'));
     bubble.querySelectorAll('.fq-step').forEach(s => s.classList.add('fq-step-revealed'));
   });
-  // 마지막 버블로 스크롤
-  const last = bubbles[bubbles.length - 1];
-  if (last) last.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  // 상단에서 시작
+  const area2 = bubbles[0]?.closest('#chatDetailArea');
+  if (area2) area2.scrollTop = 0;
 }
 
 // ── AI 응답 스트리밍 애니메이션 ──
@@ -3297,7 +3187,6 @@ function sendChatDetailMessage() {
   updateChatDetailSendBtn();
 
   const area = document.getElementById('chatDetailArea');
-  const c = getChar();
   const timeStr = getScenarioBubbleTime();
 
   // 유저 메시지 (말풍선 유지)
@@ -3312,16 +3201,12 @@ function sendChatDetailMessage() {
   const aiDiv = document.createElement('div');
   aiDiv.className = 'ai-response animate-fade-in mt-4';
   aiDiv.innerHTML = `
-    <div class="ai-header flex items-center gap-2.5">
-      <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden" style="background:${c.bg}">
-        ${charIcon(c, 'text-sm w-full h-full')}
-      </div>
-      <div class="flex items-center gap-2">
-        <span class="text-sm font-semibold text-gray-800">${c.name}</span>
-        <span class="text-xs text-gray-400">${timeStr}</span>
-      </div>
+    <div class="flex items-center gap-2 mb-2">
+      ${aiAvatar()}
+      <span class="text-sm font-semibold text-gray-900">AI 비서</span>
+      <span class="text-[11px] text-gray-400">${timeStr}</span>
     </div>
-    <div class="ai-response-body">
+    <div class="ai-response-body" >
       <span class="dot-typing flex gap-1"><span class="w-2 h-2 rounded-full bg-gray-300 inline-block"></span><span class="w-2 h-2 rounded-full bg-gray-300 inline-block"></span><span class="w-2 h-2 rounded-full bg-gray-300 inline-block"></span></span>
     </div>`;
   area.appendChild(aiDiv);
@@ -3395,16 +3280,12 @@ function handleAction(id, type) {
     // 채팅 상세 영역에 AI 응답 추가
     const area = document.getElementById('chatDetailArea');
     if (area) {
-      const c = getChar();
       const timeStr = getScenarioBubbleTime();
       const aiDiv = document.createElement('div');
-      aiDiv.className = 'flex items-start gap-2.5 animate-fade-in';
+      aiDiv.className = 'animate-fade-in';
       aiDiv.innerHTML = `
-        <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 overflow-hidden" style="background:${c.bg}">
-          ${charIcon(c, 'text-sm w-full h-full')}
-        </div>
         <div class="flex items-end gap-1.5">
-          <div class="bg-gray-50 border border-gray-100 px-4 py-3 rounded-2xl rounded-tl-md text-sm text-gray-900 max-w-[85%]">
+          <div class="bg-gray-50 border border-gray-100 px-4 py-3 rounded-2xl text-sm text-gray-900">
             ${cta.summary}
           </div>
           <span class="text-[10px] text-gray-400 pb-1 flex-shrink-0">${timeStr}</span>
@@ -3679,15 +3560,11 @@ function addUserBubble(text) {
 
 function addTypingIndicator() {
   const area = document.getElementById('chatArea');
-  const c = getChar();
   const div = document.createElement('div');
-  div.className = 'flex items-start gap-2 animate-fade-in';
+  div.className = 'animate-fade-in';
   div.id = 'typingIndicator';
   div.innerHTML = `
-    <div class="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 overflow-hidden" style="background:${c.bg}">
-      ${charIcon(c, 'text-xs w-full h-full')}
-    </div>
-    <div class="bg-gray-50 px-3 py-2 rounded-lg dot-typing flex gap-1">
+    <div class="bg-gray-50 px-3 py-2 rounded-lg dot-typing flex gap-1 w-fit">
       <span class="w-2 h-2 rounded-full bg-gray-300 inline-block"></span>
       <span class="w-2 h-2 rounded-full bg-gray-300 inline-block"></span>
       <span class="w-2 h-2 rounded-full bg-gray-300 inline-block"></span>
@@ -3774,9 +3651,7 @@ function startScenario(type) {
     // invite는 항상 미설정 상태로 시뮬레이션
     state.isCustomized = false;
     localStorage.removeItem('flowai_customized');
-    state.character = null;
     state.personality = null;
-    localStorage.removeItem('flowai_character');
     localStorage.removeItem('flowai_personality');
   }
 
@@ -3817,14 +3692,6 @@ function startScenario(type) {
   document.getElementById('phoneDate').textContent = dateStr;
   document.getElementById('scr-phone').style.background = sd.phoneBg;
 
-  // 푸시 알림 내용 업데이트
-  if (type === 'invite') {
-    // 미설정 사용자 — 캐릭터 없이 기본 아이콘
-    document.getElementById('phonePushEmoji').innerHTML = '<span class="text-lg flex items-center justify-center w-full h-full">✨</span>';
-  } else {
-    const c = getChar();
-    document.getElementById('phonePushEmoji').innerHTML = charIcon(c, 'text-lg w-full h-full');
-  }
   document.getElementById('phonePushTitle').textContent = sd.pushTitle;
   document.getElementById('phonePushSub').textContent = sd.pushSub;
   document.getElementById('phonePushHint').textContent = type === 'invite' ? '탭하여 AI 비서 시작하기' : '탭하여 브리핑 확인';
@@ -3881,10 +3748,8 @@ function chatDetailBack() {
 }
 
 function resetAllState() {
-  localStorage.removeItem('flowai_character');
   localStorage.removeItem('flowai_personality');
   localStorage.removeItem('flowai_customized');
-  state.character = null;
   state.personality = null;
   state.isCustomized = false;
   state.readRooms = [];
