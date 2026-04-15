@@ -44,91 +44,12 @@ design-system: design-system/design-tokens/ 참조
 
 ## 2. 메인 채팅 화면 (SCR-000)
 
-### 2-1. 화면 목적
-
-Flow AI의 홈 화면. 사용자가 AI와 대화하거나 Quick Action으로 주요 기능에 빠르게 접근하는 허브.
-
-### 2-2. 레이아웃
-
+> UI 스펙 상세는 [FLOW-001-screens.md](../screens/FLOW-001-screens.md) Section 3 참조
 > 디자인 소스: Figma `flowAI_스마트비서` (fileKey: kcddRFoFy89dbcPUanbTbY)
 
-```
-┌─────────────────────────────────────┐
-│  Header (px:8, py:12)               │
-│  ☰  flow AI⚡ 🛡️    🧑‍💻③       │
-│  (햄버거)(로고)(프롬프트가드)(프로필) │
-├─────────────────────────────────────┤
-│                                     │
-│  Welcome Area (좌측 정렬, px:24)    │
-│         (mt: 64px)                  │
-│                                     │
-│  신주경님,안녕하세요.                 │
-│  (text-lg, gray.900)                │
-│  무엇을 도와드릴까요?                │
-│  (text-2xl font-bold, gray.900)     │
-│                                     │
-│         (mt: 40px)                  │
-│  Quick Actions (세로 필 리스트)      │
-│                                     │
-│  ┌─ 🟢 플로우 검색 ──┐              │
-│  └────────────────────┘ (pill)      │
-│  ┌─ 🌐 웹 검색 ──────┐              │
-│  └────────────────────┘ (pill)      │
-│  ┌─ 🖼 이미지 생성 ──┐              │
-│  └────────────────────┘ (pill)      │
-│  ┌─ 💬 AI 챗봇 ──────┐              │
-│  └────────────────────┘ (pill)      │
-│  (세로 리스트, gap:12px)             │
-│                                     │
-├─────────────────────────────────────┤
-│  Input Bar (px:12, pb:12)           │
-│  ┌────────────────────────────────┐ │
-│  │ 업무부터 일상 질문까지,          │ │
-│  │ 무엇이든 물어보세요.             │ │
-│  │ ┌──┬──┬──┐      ┌──┬──┐       │ │
-│  │ │＋│🌐│☰ │      │🧠▼│↑│       │ │
-│  │ └──┴──┴──┘      └──┴──┘       │ │
-│  └────────────────────────────────┘ │
-│  보안 안내 텍스트 (text-xs, center) │
-└─────────────────────────────────────┘
-```
+**화면 요약**: 라이트 테마, 세로 Pill형 Quick Action 리스트 (플로우 검색 / 웹 검색 / 이미지 생성 / AI 챗봇)
 
-### 2-3. Quick Action 필(Pill) 스펙
-
-| 속성 | 값 | 토큰 |
-|------|-----|------|
-| 배경 | `gray.white` (#FFFFFF) | colors.gray.white |
-| 테두리 | `gray.200` (#E2E8F0) | colors.gray.200 |
-| 반경 | full (9999px) | borderRadius.full |
-| 패딩 | px:16, py:8 | spacing.4 / spacing.2 |
-| 아이콘 크기 | 20×20px | - |
-| 제목 | text-sm font-medium, `gray.900` | textStyles.body.sm-medium |
-| hover | border `brand.300`, bg `brand.50` | - |
-| 전환 | colors 150ms ease-out | motion.fadeIn |
-| 배치 | 세로 리스트 (inline-flex), gap 12px | - |
-
-### 2-4. Header 스펙
-
-| 속성 | 값 | 토큰 |
-|------|-----|------|
-| 높이 | auto (py:12px) | componentDefaults.header.py |
-| 배경 | `gray.white` (#FFFFFF) | colors.gray.white |
-| 타이틀 | "flow AI⚡", text-lg font-bold, `gray.900` | heading 스타일 |
-| 사이드바 아이콘 (☰) | 24×24px, `gray.600` | - |
-| 프롬프트 가드 뱃지 | 24×24px, r:full, border `brand.400`, dot `brand.500` | - |
-| 프로필 아바타 | 40×40px, r:full, 알림 뱃지(red.500, 숫자) | AvatarProfile 참조 |
-
-### 2-5. Input Bar 스펙
-
-| 속성 | 값 | 토큰 |
-|------|-----|------|
-| 컨테이너 배경 | `gray.50` (#F8FAFC) | colors.gray.50 |
-| 컨테이너 테두리 | `gray.200` (#E2E8F0) | colors.gray.200 |
-| 컨테이너 반경 | 16px | borderRadius.2xl |
-| 플레이스홀더 | "업무부터 일상 질문까지, 무엇이든 물어보세요." | - |
-| 좌측 버튼 | ＋(첨부), 🌐(웹검색), ☰(슬라이더) | 36×36px |
-| 우측 버튼 | 🧠▼(모델선택), ↑(전송, brand.500) | 36×36px |
-| 보안 안내 | text-xs, `gray.400`, center | - |
+**진입점 역할**: "AI 챗봇" 필을 탭하면 `enterSmartAssistant()` 호출 → 온보딩 완료 여부에 따라 분기
 
 ---
 
@@ -181,7 +102,7 @@ Flow AI의 홈 화면. 사용자가 AI와 대화하거나 Quick Action으로 주
 ### 4-1. 플로우 검색
 
 ```
-[메인 화면] → "플로우 검색" 카드 탭
+[메인 화면] → "플로우 검색" 필 탭
     ↓
 [검색 화면] (심플 검색 UI, 프로토타입에서는 placeholder)
 ```
@@ -189,7 +110,7 @@ Flow AI의 홈 화면. 사용자가 AI와 대화하거나 Quick Action으로 주
 ### 4-2. 웹 검색
 
 ```
-[메인 화면] → "웹 검색" 카드 탭
+[메인 화면] → "웹 검색" 필 탭
     ↓
 [웹 검색 채팅] (프로토타입에서는 "준비 중" 토스트)
 ```
@@ -197,7 +118,7 @@ Flow AI의 홈 화면. 사용자가 AI와 대화하거나 Quick Action으로 주
 ### 4-3. 이미지 생성
 
 ```
-[메인 화면] → "이미지 생성" 카드 탭
+[메인 화면] → "이미지 생성" 필 탭
     ↓
 [이미지 생성 채팅] (프로토타입에서는 "준비 중" 토스트)
 ```
