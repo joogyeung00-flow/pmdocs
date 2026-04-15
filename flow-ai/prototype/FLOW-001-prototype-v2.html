@@ -463,7 +463,10 @@ tailwind.config = {
   <!-- ===== Sidebar ===== -->
   <div id="sidebar" class="absolute top-0 left-0 h-full w-[300px] z-50 shadow-xl flex flex-col" style="max-width:300px;transform:translateX(-100%);transition:transform 250ms ease-in-out;background:#F9F8FE">
     <div class="flex items-center justify-between px-4 py-4 border-b border-gray-100">
-      <div></div>
+      <button onclick="toggleSidebar();showScreen('scr-scenario')" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-gray-500 hover:text-brand-600 hover:bg-brand-50 transition-colors text-xs font-medium">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        시나리오 선택
+      </button>
       <button onclick="toggleSidebar()" class="p-1 text-gray-400 hover:text-gray-600 transition-colors">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
