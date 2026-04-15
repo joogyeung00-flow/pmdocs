@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "mcp__claude_ai_Figma__search_design_system",
-      "Bash(pip install:*)",
-      "Bash(python -c ':*)"
-    ]
-  }
-}
