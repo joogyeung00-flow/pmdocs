@@ -1,0 +1,694 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>flow AI — 새 채팅 (사용자 화면)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet" />
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        primary: 'rgba(91, 64, 248, 1)',
+        'primary-fg': 'rgba(255, 255, 255, 1)',
+        'shadcn-bg': 'rgba(255, 255, 255, 1)',
+        'shadcn-fg': 'rgba(2, 6, 23, 1)',
+        'shadcn-mut': 'rgba(241, 245, 249, 1)',
+        'shadcn-mutfg': 'rgba(100, 116, 139, 1)',
+        'shadcn-bd': 'rgba(226, 232, 240, 1)',
+        'flow-bg05': 'rgba(249, 248, 254, 1)',
+        'gray-150': 'rgba(232, 235, 240, 1)',
+        'bot-05': '#2677C8',
+        'indigo-400': '#818CF8',
+        'sky-400': '#38BDF8',
+        'muted-variant': '#f4f5f7',
+        'muted-variant-2': '#e3e5e8',
+      },
+      fontFamily: { sans: ['Pretendard', 'ui-sans-serif', 'sans-serif'] },
+      borderRadius: { md: '6px', lg: '8px', xl: '12px' },
+      boxShadow: { input: '0 0 12px rgba(0,0,0,0.08)' },
+      keyframes: {
+        unlimitedProgress: { '0%': { 'background-position': '0% 50%' }, '100%': { 'background-position': '200% 50%' } },
+      },
+      animation: { 'unlimited-progress': 'unlimitedProgress 3s linear infinite' },
+    },
+  },
+};
+</script>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: 'Pretendard', sans-serif; background: #fff; color: rgba(2,6,23,1); }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-thumb { background: rgba(226,232,240,1); border-radius: 9999px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  button:focus, button:focus-visible, a:focus, a:focus-visible { outline: none; box-shadow: none; }
+
+  /* Quick Chip */
+  .chip {
+    display: inline-flex; align-items: center; justify-content: center;
+    height: 36px; padding: 0 12px; gap: 10px;
+    border: 1px solid rgb(229,231,235); border-radius: 9999px;
+    font-size: 16px; font-weight: 400;
+    background: #fff; color: rgba(2,6,23,1);
+    cursor: pointer; transition: all 150ms;
+    box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
+  }
+  .chip:hover { background: rgb(249,250,251); }
+
+  /* ─── 설정 모달 (connector-management 기준 토큰) ─── */
+  :root {
+    --primary: #5b40f8;
+    --slate-50: #f8fafc; --slate-100: #f1f5f9; --slate-200: #e2e8f0;
+    --slate-300: #cbd5e1; --slate-400: #94a3b8; --slate-500: #64748b;
+    --slate-600: #475569; --slate-700: #334155; --slate-900: #0f172a; --slate-950: #020617;
+    --muted: #f1f5f9; --muted-foreground: #64748b; --foreground: #02061f;
+    --muted-variant: hsl(220 14% 96%); --muted-variant-2: hsl(220 13% 91%);
+    --popover-foreground: #020617;
+    --radius: 8px; --radius-sm: 6px; --shadow: 0 1px 2px rgba(15,23,42,0.04);
+  }
+  .modal-backdrop {
+    position: fixed; inset: 0; background: rgba(15,23,42,0.4);
+    display: none; align-items: center; justify-content: center; z-index: 50;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    position: relative;
+    width: min(960px, calc(100% - 32px));
+    height: min(720px, calc(100vh - 64px));
+    background: #fff; border-radius: 8px;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+    display: flex; flex-direction: row; overflow: hidden;
+  }
+  .modal-nav {
+    flex-shrink: 0; min-width: 180px; max-width: 210px;
+    background: var(--muted-variant); padding: 12px;
+    display: flex; flex-direction: column; gap: 8px; align-self: stretch;
+  }
+  .modal-nav .close-btn {
+    width: 40px; height: 40px; border-radius: var(--radius-sm); border: 0;
+    background: transparent; display: inline-flex; align-items: center; justify-content: center;
+    color: var(--slate-700); padding: 12px; cursor: pointer; transition: background-color .12s ease;
+  }
+  .modal-nav .close-btn:hover { background: var(--muted-variant-2); }
+  .modal-nav .close-btn svg { width: 24px; height: 24px; }
+  .modal-nav .nav-list { display: flex; flex-direction: column; gap: 8px; }
+  .modal-nav .nav-list button {
+    width: 100%; text-align: left; background: transparent; border: 0; border-radius: var(--radius-sm);
+    padding: 8px 12px; font-size: 14px; font-weight: 500; line-height: 20px; color: var(--popover-foreground);
+    display: flex; align-items: center; transition: background-color .12s ease; cursor: pointer;
+  }
+  .modal-nav .nav-list button:hover { background: color-mix(in srgb, var(--muted-variant-2) 50%, transparent); }
+  .modal-nav .nav-list button.active { background: var(--muted-variant-2); }
+  .modal-content { width: 100%; flex: 1; min-width: 0; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; }
+  .panel-header { border-bottom: 1px solid var(--slate-100); }
+  .panel-header-inner {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 32px 24px; max-width: 896px; margin: 0 auto; min-width: 344px;
+  }
+  .panel-header-text { min-width: 0; flex: 1; }
+  .panel-header-text h1 { font-size: 24px; font-weight: 600; color: var(--slate-950); line-height: 1.3; }
+  .panel-header-text p { margin: 4px 0 0; font-size: 12px; font-weight: 400; color: var(--slate-500); letter-spacing: -0.01em; white-space: pre-line; }
+  .panel-header-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+  .panel-body {
+    flex: 1; min-height: 0; overflow-y: auto;
+    padding: 24px 16px 16px; max-width: 896px; margin: 0 auto; width: 100%; min-width: 344px;
+    display: flex; flex-direction: column; gap: 28px;
+  }
+  .ext-refresh {
+    background: transparent; border: 0; padding: 8px; border-radius: var(--radius-sm);
+    color: var(--slate-500); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .ext-refresh:hover { background: var(--slate-100); color: var(--slate-900); }
+  .ext-list { display: flex; flex-direction: column; gap: 12px; }
+  .ext-card {
+    display: flex; align-items: center; gap: 16px; padding: 16px 20px;
+    background: #fff; border: 1px solid var(--slate-200); border-radius: var(--radius); box-shadow: var(--shadow);
+  }
+  .ext-logo {
+    width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--slate-100); color: var(--slate-700);
+  }
+  .ext-logo.notion { background: #000; color: #fff; font-size: 22px; font-weight: 700; }
+  .ext-logo.hubspot { background: #ff7a59; color: #fff; font-size: 20px; font-weight: 700; }
+  .ext-logo.github { background: #24292e; color: #fff; }
+  .ext-logo.koreamlaw { background: #eef2ff; color: #4338ca; }
+  .ext-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+  .ext-title-row { display: flex; align-items: center; gap: 8px; }
+  .ext-name { font-size: 16px; font-weight: 600; color: var(--slate-950); }
+  .ext-desc { font-size: 13px; color: var(--slate-500); line-height: 1.4; }
+  .ext-when { font-size: 12px; color: var(--slate-400); margin-top: 2px; }
+  .ext-actions { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+  .status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 500; }
+  .status-badge.off { background: var(--slate-100); color: var(--slate-600); }
+  .status-badge.on { background: #dcfce7; color: #166534; }
+  .tools-link {
+    background: transparent; border: 0; padding: 6px 8px; border-radius: var(--radius-sm);
+    color: var(--slate-600); font-size: 13px; display: inline-flex; align-items: center; gap: 4px;
+    cursor: pointer; transition: all .12s ease;
+  }
+  .tools-link:hover { background: var(--slate-50); color: var(--slate-900); }
+  .ext-btn {
+    display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px;
+    border-radius: var(--radius-sm); font-size: 13px; font-weight: 500;
+    border: 1px solid transparent; transition: all .12s ease; background: transparent; white-space: nowrap; cursor: pointer;
+  }
+  .ext-btn.primary { background: var(--primary); color: #fff; }
+  .ext-btn.primary:hover { filter: brightness(1.05); }
+  .ext-btn.bordered { background: #fff; color: var(--slate-700); border-color: var(--slate-200); }
+  .ext-btn.bordered:hover { background: var(--slate-50); }
+  .ext-btn.auto { background: #fff; color: var(--slate-500); border-color: var(--slate-200); cursor: default; }
+  .ext-btn:focus, .ext-btn:focus-visible { outline: none; box-shadow: none; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  .empty-panel { padding: 80px 20px; text-align: center; color: var(--slate-400); font-size: 14px; }
+  .dialog-backdrop { position: fixed; inset: 0; background: rgba(15,23,42,0.5); display: none; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+  .dialog-backdrop.open { display: flex; }
+  .dialog.dialog-wide {
+    background: #fff; border-radius: 12px; max-width: 560px; width: 100%; max-height: 80vh;
+    display: flex; flex-direction: column; padding: 24px; gap: 0; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+  }
+  .dialog-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+  .dialog-head h3 { font-size: 18px; font-weight: 700; margin: 0; }
+  .dialog-close { background: transparent; border: 0; color: var(--slate-400); cursor: pointer; padding: 4px; border-radius: var(--radius-sm); display: inline-flex; align-items: center; justify-content: center; }
+  .dialog-close:hover { background: var(--slate-100); color: var(--slate-700); }
+  .dialog .dlg-desc { font-size: 14px; color: var(--slate-500); margin: 0 0 16px; }
+  .tool-ro-list { display: flex; flex-direction: column; gap: 8px; flex: 1; overflow-y: auto; padding-top: 4px; }
+  .tool-ro-item { background: #fff; border: 1px solid var(--slate-200); border-radius: var(--radius); padding: 12px 14px; }
+  .tool-ro-item .name { font-size: 14px; font-weight: 600; color: var(--slate-900); margin-bottom: 4px; }
+  .tool-ro-item .desc { font-size: 13px; color: var(--slate-500); line-height: 1.4; }
+  .dlg-footer-tools { display: flex; justify-content: flex-end; gap: 8px; padding-top: 16px; border-top: 1px solid var(--slate-100); margin-top: 16px; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; border: 1px solid transparent; background: transparent; cursor: pointer; }
+  .btn-outline { background: #fff; color: var(--slate-700); border-color: var(--slate-200); }
+  .btn-outline:hover { background: var(--slate-50); }
+  .toast-zone { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 8px; z-index: 200; }
+  .toast { background: var(--slate-950); color: #fff; padding: 10px 14px; border-radius: var(--radius-sm); font-size: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); max-width: 320px; }
+  .toast.success { background: #00b01c; }
+  .toast.error { background: #ff3434; }
+  h1, h2, h3, h4 { margin: 0; }
+</style>
+</head>
+<body class="min-h-screen">
+
+<div class="flex h-screen w-full overflow-hidden bg-white">
+
+  <!-- ─── SIDEBAR ─── -->
+  <aside class="hidden lg:flex w-[240px] shrink-0 flex-col border-r border-gray-150 bg-flow-bg05">
+    <header class="flex flex-col gap-2 p-2 md:p-3 md:pb-1">
+      <ul class="hidden min-w-0 w-full flex-row justify-between pb-2 md:flex">
+        <li class="relative">
+          <button class="flex h-12 w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm transition-colors duration-150 hover:bg-gray-200/80" aria-label="메뉴">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 shrink-0"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></svg>
+          </button>
+        </li>
+      </ul>
+    </header>
+
+    <nav class="px-3 pt-1 pb-2 space-y-0.5">
+      <a class="flex h-8 cursor-pointer items-center gap-2 rounded-md p-2 text-sm font-medium hover:bg-gray-200/80">
+        <span class="inline-flex h-4 w-4 shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>
+        </span>
+        <span class="truncate text-sm leading-5">새 채팅</span>
+      </a>
+      <a class="flex cursor-pointer items-center gap-2 rounded-md p-2 text-[14px] hover:bg-gray-200/80">
+        <span class="inline-flex h-4 w-4 shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h11"/></svg>
+        </span>
+        AI 업무 매니저
+      </a>
+      <a class="flex cursor-pointer items-center gap-2 rounded-md p-2 text-[14px] hover:bg-gray-200/80">
+        <span class="inline-flex h-4 w-4 shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+        </span>
+        AI 챗봇
+      </a>
+      <a class="flex cursor-pointer items-center gap-2 rounded-md p-2 text-[14px] hover:bg-gray-200/80">
+        <span class="inline-flex h-4 w-4 shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 1 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>
+        </span>
+        AI 플레이북스
+        <span class="ml-auto inline-flex shrink-0 items-center rounded-md bg-slate-50/60 px-1 text-[10px] font-normal leading-none text-slate-400" style="box-shadow: inset 0 0 0 1px rgb(241 245 249);">일부공개기능</span>
+      </a>
+    </nav>
+
+    <div class="flex-1 overflow-y-auto border-t border-shadcn-mut/60 px-3 py-3">
+      <div class="mb-2 px-2 text-[11px] font-semibold uppercase tracking-wider text-shadcn-mutfg/80">채팅</div>
+      <ul class="space-y-0.5 text-[13px] text-shadcn-fg/85">
+        <li class="cursor-pointer rounded-md px-3 py-2 hover:bg-shadcn-mut">사당연세365의원 오마프플러스 …</li>
+        <li class="cursor-pointer rounded-md px-3 py-2 hover:bg-shadcn-mut">오메가-3 회복 솔루션</li>
+        <li class="cursor-pointer rounded-md px-3 py-2 hover:bg-shadcn-mut">오마프플러스원 포스터</li>
+        <li class="cursor-pointer rounded-md px-3 py-2 hover:bg-shadcn-mut">[Event] 박람회 준비 체크리스트 …</li>
+        <li class="cursor-pointer rounded-md px-3 py-2 hover:bg-shadcn-mut">FlowSansKR 경량폰트</li>
+        <li class="cursor-pointer rounded-md px-3 py-2 hover:bg-shadcn-mut">알림 정책 2026 개요</li>
+        <li class="cursor-pointer rounded-md px-3 py-2 hover:bg-shadcn-mut">오늘의 협업툴 동향</li>
+        <li class="cursor-pointer rounded-md px-3 py-2 hover:bg-shadcn-mut">관계형 의료 소식 공유</li>
+      </ul>
+    </div>
+
+    <ul class="flex w-full flex-col gap-2 shrink-0">
+      <!-- 프로필 + AI 등급 카드 -->
+      <div class="flex w-full flex-col items-start justify-start gap-2 border-t border-shadcn-bd p-3 pb-1">
+        <li class="relative flex w-full items-center justify-center">
+          <!-- 프로필 카드 — 클릭 시 설정 모달 -->
+          <button type="button" id="profileCardBtn" class="w-full cursor-pointer rounded-md text-left transition-colors duration-150 hover:bg-gray-200/80">
+            <div class="flex min-h-10 w-full max-w-[240px] items-center gap-2.5">
+              <span class="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-full">
+                <span class="h-full w-full bg-gradient-to-br from-amber-200 to-amber-400"></span>
+              </span>
+              <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
+                <div class="flex items-center gap-1">
+                  <span class="truncate text-sm font-medium text-shadcn-fg">신주경</span>
+                  <span class="shrink-0 text-xs font-normal text-shadcn-mutfg">책임</span>
+                </div>
+                <span class="truncate text-xs font-normal text-shadcn-mutfg">PM3팀</span>
+              </div>
+            </div>
+          </button>
+        </li>
+
+        <div class="flex w-full cursor-pointer flex-col items-start justify-start gap-0.5 rounded-md bg-white py-2 shadow transition-all duration-200 hover:shadow-md hover:ring-1 hover:ring-gray-200/50">
+          <div class="inline-flex w-full items-center justify-between truncate px-2.5">
+            <div class="flex items-center gap-2">
+              <span class="inline-flex h-4 w-4 shrink-0 items-center justify-center text-primary" style="filter: drop-shadow(0 0 6px rgba(91,64,248,0.35));">
+                <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><path d="M6.4245 5.18586L8.2044 9.78093L12.849 11.5419L8.2044 13.3028L6.4245 17.8978L4.6446 13.3028L0 11.5419L4.64461 9.78093L6.4245 5.18586Z" fill="currentColor"/><path d="M16.6455 13.3625L17.5748 15.7618L20 16.6813L17.5748 17.6007L16.6455 20L15.7161 17.6007L13.291 16.6813L15.7161 15.7618L16.6455 13.3625Z" fill="currentColor"/><path d="M14.5968 0L15.7373 2.9442L18.7132 4.07248L15.7373 5.20075L14.5968 8.14495L13.4564 5.20075L10.4805 4.07248L13.4564 2.9442L14.5968 0Z" fill="currentColor"/></svg>
+              </span>
+              <div class="text-xs font-semibold leading-4 text-primary">AI 울트라 이용 중</div>
+            </div>
+          </div>
+          <div class="flex w-full flex-col items-start justify-center self-stretch px-1.5">
+            <div class="flex w-full flex-col items-start justify-start gap-0.5 self-stretch rounded-md bg-white p-1.5">
+              <div class="inline-flex w-full items-center justify-between">
+                <span class="truncate text-[10px] font-semibold leading-4 text-shadcn-fg">사용 현황</span>
+                <div class="truncate text-right text-[10px] font-normal leading-4 text-shadcn-mutfg">746회 / 무제한</div>
+              </div>
+              <div class="relative h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
+                <div class="absolute inset-0 h-1.5 rounded-full bg-gradient-to-r from-primary via-indigo-400 to-primary bg-[length:200%_100%] animate-unlimited-progress"></div>
+              </div>
+            </div>
+            <div class="flex w-full flex-col items-center justify-start gap-0.5 self-stretch rounded-md bg-white p-1.5">
+              <div class="inline-flex w-full items-center justify-between">
+                <span class="truncate text-[10px] font-semibold leading-4 text-shadcn-fg">고급 기능</span>
+                <div class="truncate text-right text-[10px] font-normal leading-4 text-shadcn-mutfg">169회 / 무제한</div>
+              </div>
+              <div class="relative h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
+                <div class="absolute inset-0 h-1.5 rounded-full bg-gradient-to-r from-bot-05 via-sky-400 to-bot-05 bg-[length:200%_100%] animate-unlimited-progress"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 어드민 대시보드 -->
+      <div class="flex w-full flex-col items-start justify-start gap-2 border-t border-shadcn-bd px-3">
+        <button class="flex h-10 w-full items-center gap-2 truncate rounded-md transition-colors duration-150 hover:bg-gray-200/80">
+          <div class="flex h-10 w-10 items-center justify-center">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 text-shadcn-fg"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+          </div>
+          <span class="text-sm font-medium leading-6 text-shadcn-fg">어드민 대시보드</span>
+        </button>
+      </div>
+    </ul>
+  </aside>
+
+  <!-- ─── 메인: 새 채팅 ─── -->
+  <main class="relative flex flex-1 flex-col overflow-hidden bg-white">
+    <!-- 상단 공지 배너 -->
+    <div class="relative min-h-[40px] shrink-0 p-2">
+      <div class="mx-auto w-full px-2 md:w-fit md:max-w-[768px] md:px-4">
+        <div class="flex h-[28px] items-center gap-1.5 rounded-full border border-shadcn-bd bg-white py-0.5 pl-0.5 pr-2 hover:border-shadcn-mutfg/30 cursor-pointer transition-colors md:h-[34px] md:gap-2.5 md:py-1 md:pl-1 md:pr-3">
+          <span class="inline-flex items-center shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold md:px-2.5 md:text-xs" style="background-color:#FEF3C7; color:#92400E;">공지</span>
+          <div class="relative min-w-0 flex-1 overflow-hidden">
+            <span class="block truncate text-xs font-medium text-shadcn-mutfg md:text-sm">2026년 5월 1일부터 요금제 및 이용 정책이 개편됩니다. 무료 체험 사용량 변경 및 신규 요금제 추가 내용을 확인하세요.</span>
+          </div>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-3 w-3 shrink-0 text-shadcn-mutfg/40 md:h-3.5 md:w-3.5"><path d="m9 18 6-6-6-6"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex min-h-0 flex-1"></div>
+
+    <!-- 헤더 + 입력 -->
+    <div class="mx-auto w-full min-w-[344px] shrink-0 md:max-w-[768px]">
+      <div class="flex flex-col items-center">
+        <div class="flex w-full flex-1 flex-col items-start justify-center gap-1 bg-transparent px-4 pb-6 pt-6 md:items-center md:pb-2 md:pt-6">
+          <p class="text-left text-2xl font-light tracking-tight md:text-center">신주경님, 안녕하세요.</p>
+          <h1 class="text-left text-4xl tracking-tight md:text-center">무엇을 도와드릴까요?</h1>
+
+          <div class="mt-4 flex flex-col items-start gap-4 md:flex-row md:items-center md:justify-center md:gap-2">
+            <button class="chip">
+              <span class="flex h-5 w-5 shrink-0 items-center justify-center">
+                <img src="../../front/public/logo/flow-logo.png" alt="flow logo" width="20" height="20" class="h-5 w-5 object-contain"/>
+              </span>
+              플로우에서 검색하기
+            </button>
+            <button class="chip">
+              <span class="flex h-5 w-5 shrink-0 items-center justify-center">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+              </span>
+              웹에서 검색하기
+            </button>
+            <button class="chip">
+              <span class="flex h-5 w-5 shrink-0 items-center justify-center">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+              </span>
+              이미지 만들기
+            </button>
+            <button class="chip">
+              <span class="flex h-5 w-5 shrink-0 items-center justify-center">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+              </span>
+              AI 챗봇
+            </button>
+          </div>
+        </div>
+
+        <!-- 입력창 -->
+        <div class="flex w-full flex-col items-start px-4 pb-2 pt-0 md:px-6">
+          <div class="relative w-full min-w-[320px] overflow-hidden rounded-xl border border-gray-200 bg-white shadow-input">
+            <div class="flex flex-col p-4 pb-0">
+              <textarea rows="2" class="w-full resize-none border-0 bg-transparent p-0 text-base leading-normal placeholder:text-shadcn-mutfg/80 focus:outline-none" placeholder="업무부터 일상 질문까지, AI와 자유롭게 대화해 보세요."></textarea>
+            </div>
+            <div class="relative flex items-center justify-between p-3">
+              <div class="flex items-center">
+                <button class="flex h-9 w-9 items-center justify-center rounded-md hover:bg-shadcn-mut" aria-label="파일 첨부">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                </button>
+                <button class="flex h-9 w-9 items-center justify-center rounded-md hover:bg-shadcn-mut" aria-label="고급 답변">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 text-shadcn-fg"><path d="M12 18V5"/><path d="M15 13a4.17 4.17 0 0 1-3-4 4.17 4.17 0 0 1-3 4"/><path d="M17.598 6.5A3 3 0 1 0 12 5a3 3 0 1 0-5.598 1.5"/><path d="M17.997 5.125a4 4 0 0 1 2.526 5.77"/><path d="M18 18a4 4 0 0 0 2-7.464"/><path d="M19.967 17.483A4 4 0 1 1 12 18a4 4 0 1 1-7.967-.517"/><path d="M6 18a4 4 0 0 1-2-7.464"/><path d="M6.003 5.125a4 4 0 0 0-2.526 5.77"/></svg>
+                </button>
+                <button class="flex h-9 w-9 items-center justify-center rounded-full hover:bg-shadcn-mut" aria-label="기능 설정">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M10 5H3"/><path d="M12 19H3"/><path d="M14 3v4"/><path d="M16 17v4"/><path d="M21 12h-9"/><path d="M21 19h-5"/><path d="M21 5h-7"/><path d="M8 10v4"/><path d="M8 12H3"/></svg>
+                </button>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <button class="inline-flex h-9 items-center gap-2 whitespace-nowrap rounded-md bg-transparent p-3 text-sm" style="outline:1px solid rgba(226,232,240,1); outline-offset:-1px;">
+                  <span class="relative flex h-4 w-4 shrink-0 overflow-hidden rounded-full">
+                    <img src="../../front/public/logo/openai-logo.png" alt="" class="aspect-square h-4 w-4 object-contain"/>
+                  </span>
+                  <span class="text-sm font-medium">GPT-5.1</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 text-shadcn-mutfg"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <button class="flex h-9 w-9 items-center justify-center rounded-md bg-primary px-3 text-white shadow disabled:opacity-50" disabled aria-label="보내기">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="hidden w-full flex-wrap items-center md:flex">
+            <div class="mt-1 flex min-w-0 flex-1 items-center px-4">
+              <span class="block w-full truncate text-xs font-medium text-primary">flow AI의 대화는 LLM에 학습·기록되지 않으며, 프롬프트 가드로 더욱 안전하게 처리됩니다.</span>
+            </div>
+            <div class="ml-auto mt-1 flex justify-end pr-4 text-xs"><span class="text-shadcn-mutfg">0 / 10,000</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex min-h-0 flex-1"></div>
+  </main>
+</div>
+
+<!-- ─── 설정 모달 (프로필 카드 클릭 시) ─── -->
+<div class="modal-backdrop open" id="settingsModal">
+  <div class="modal" role="dialog" aria-labelledby="modalTitle">
+    <aside class="modal-nav">
+      <button class="close-btn" aria-label="닫기" type="button" onclick="closeSettings()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+      </button>
+      <div class="nav-list" id="settingsNav">
+        <button data-tab="profile" type="button">내 정보</button>
+        <button data-tab="preferences" type="button">환경 설정</button>
+        <button data-tab="usage" type="button">사용 현황</button>
+        <button data-tab="connectors" class="active" type="button">외부 서비스 연동</button>
+      </div>
+    </aside>
+
+    <section class="modal-content">
+      <div class="panel" data-panel="profile">
+        <div class="panel-header"><div class="panel-header-inner"><div class="panel-header-text">
+          <h1>내 정보</h1>
+          <p>AI가 나를 더 잘 이해할 수 있도록 정보를 입력하세요. 아래 정보는 보안 마스킹이 적용되지 않습니다.</p>
+        </div></div></div>
+        <div class="panel-body"><div class="empty-panel">내 정보 — placeholder</div></div>
+      </div>
+
+      <div class="panel" data-panel="preferences">
+        <div class="panel-header"><div class="panel-header-inner"><div class="panel-header-text">
+          <h1>환경 설정</h1>
+          <p>테마, 언어, 알림 등 사용 환경을 설정합니다.</p>
+        </div></div></div>
+        <div class="panel-body"><div class="empty-panel">환경 설정 — placeholder</div></div>
+      </div>
+
+      <div class="panel" data-panel="usage">
+        <div class="panel-header"><div class="panel-header-inner"><div class="panel-header-text">
+          <h1>사용 현황</h1>
+          <p>이번 달 AI 사용량과 고급 기능 잔여 횟수를 확인합니다.</p>
+        </div></div></div>
+        <div class="panel-body"><div class="empty-panel">사용 현황 — placeholder</div></div>
+      </div>
+
+      <div class="panel active" data-panel="connectors">
+        <div class="panel-header">
+          <div class="panel-header-inner">
+            <div class="panel-header-text">
+              <h1>외부 서비스 연동</h1>
+              <p>외부 서비스를 연결하면 AI가 해당 서비스의 데이터를 조회하고 관리할 수 있습니다.</p>
+            </div>
+            <div class="panel-header-actions">
+              <button class="ext-refresh" type="button" aria-label="새로고침" onclick="toast('새로고침 완료')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M8 16H3v5"></path></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="ext-list">
+            <div class="ext-card" data-conn="hubspot" data-state="off">
+              <div class="ext-logo hubspot">⊕</div>
+              <div class="ext-meta">
+                <div class="ext-title-row"><span class="ext-name">HubSpot</span><span class="status-badge off">연결 안 됨</span></div>
+                <div class="ext-desc">HubSpot CRM에서 연락처, 거래, 회사 정보를 조회하고 관리합니다.</div>
+              </div>
+              <div class="ext-actions">
+                <button class="ext-btn primary" type="button" onclick="connectService(this, 'HubSpot')">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                  연결
+                </button>
+              </div>
+            </div>
+
+            <div class="ext-card" data-conn="notion" data-state="on">
+              <div class="ext-logo notion">N</div>
+              <div class="ext-meta">
+                <div class="ext-title-row"><span class="ext-name">Notion</span><span class="status-badge on">연결됨</span></div>
+                <div class="ext-desc">Notion 워크스페이스에서 페이지, 데이터베이스를 조회하고 관리합니다.</div>
+                <div class="ext-when">연결 2026. 5. 15.</div>
+              </div>
+              <div class="ext-actions">
+                <button class="tools-link" type="button" onclick="openToolsModal('notion')">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                  도구
+                </button>
+                <button class="ext-btn bordered" type="button" onclick="disconnectService(this, 'Notion')">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m2 22 20-20"></path><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                  해제
+                </button>
+              </div>
+            </div>
+
+            <div class="ext-card" data-conn="koreamlaw" data-state="auto">
+              <div class="ext-logo koreamlaw">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg>
+              </div>
+              <div class="ext-meta">
+                <div class="ext-title-row"><span class="ext-name">Koream Law</span><span class="status-badge on">연결됨</span></div>
+                <div class="ext-desc">한국 법령 MCP</div>
+              </div>
+              <div class="ext-actions">
+                <button class="tools-link" type="button" onclick="openToolsModal('koreamlaw')">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                  도구
+                </button>
+                <span class="ext-btn auto" title="조직 관리자가 자동 연결한 커넥터입니다">자동 연결</span>
+              </div>
+            </div>
+
+            <div class="ext-card" data-conn="github" data-state="on">
+              <div class="ext-logo github">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.4.5 0 5.9 0 12.5c0 5.3 3.4 9.8 8.2 11.4.6.1.8-.3.8-.6v-2.2c-3.3.7-4-1.6-4-1.6-.5-1.4-1.3-1.8-1.3-1.8-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2.9-.3 2-.4 3-.4s2.1.1 3 .4c2.3-1.5 3.3-1.2 3.3-1.2.7 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6 4.8-1.6 8.2-6.1 8.2-11.4C24 5.9 18.6.5 12 .5z"/></svg>
+              </div>
+              <div class="ext-meta">
+                <div class="ext-title-row"><span class="ext-name">GitHub</span><span class="status-badge on">연결됨</span></div>
+                <div class="ext-desc">GitHub 리포지토리, 이슈, PR 등을 조회하고 관리합니다.</div>
+                <div class="ext-when">연결 2026. 5. 15.</div>
+              </div>
+              <div class="ext-actions">
+                <button class="tools-link" type="button" onclick="openToolsModal('github')">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                  도구
+                </button>
+                <button class="ext-btn bordered" type="button" onclick="disconnectService(this, 'GitHub')">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m2 22 20-20"></path><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                  해제
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ─── 도구 보기 모달 ─── -->
+<div class="dialog-backdrop" data-dialog="toolsView">
+  <div class="dialog dialog-wide" role="dialog" aria-labelledby="toolsViewTitle">
+    <div class="dialog-head">
+      <div>
+        <h3 id="toolsViewTitle">도구</h3>
+        <p class="dlg-desc" id="toolsViewDesc">이 커넥터를 통해 AI가 사용할 수 있는 도구 목록입니다.</p>
+      </div>
+      <button class="dialog-close" type="button" onclick="closeDialog()" aria-label="닫기">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+      </button>
+    </div>
+    <div class="tool-ro-list" id="toolsViewList"></div>
+  </div>
+</div>
+
+<div class="toast-zone" id="toastZone"></div>
+
+<script>
+  // 설정 모달 열기/닫기
+  document.getElementById('profileCardBtn').addEventListener('click', () => {
+    document.getElementById('settingsModal').classList.add('open');
+  });
+  window.closeSettings = () => document.getElementById('settingsModal').classList.remove('open');
+  document.getElementById('settingsModal').addEventListener('click', (e) => {
+    if (e.target.id === 'settingsModal') closeSettings();
+  });
+
+  // 설정 탭 전환
+  document.getElementById('settingsNav').addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-tab]');
+    if (!btn) return;
+    document.querySelectorAll('#settingsNav button').forEach((b) => b.classList.toggle('active', b === btn));
+    const key = btn.dataset.tab;
+    document.querySelectorAll('[data-panel]').forEach((p) => p.classList.toggle('active', p.dataset.panel === key));
+  });
+
+  // toast
+  window.toast = (msg, kind = '') => {
+    const t = document.createElement('div');
+    t.className = 'toast ' + kind;
+    t.textContent = msg;
+    document.getElementById('toastZone').appendChild(t);
+    setTimeout(() => t.remove(), 2400);
+  };
+
+  // 도구 보기 다이얼로그
+  window.openDialog = (k) => document.querySelector(`[data-dialog="${k}"]`)?.classList.add('open');
+  window.closeDialog = () => document.querySelectorAll('.dialog-backdrop').forEach((d) => d.classList.remove('open'));
+  document.querySelectorAll('.dialog-backdrop').forEach((d) => {
+    d.addEventListener('click', (e) => { if (e.target === d) closeDialog(); });
+  });
+
+  const TOOL_CATALOG = {
+    notion: {
+      label: 'Notion',
+      tools: [
+        { name: 'notion-search', desc: 'Notion 워크스페이스와 연결된 데이터 소스를 의미 검색합니다.' },
+        { name: 'notion-fetch', desc: 'URL 또는 ID로 Notion 페이지·데이터베이스의 상세 내용을 조회합니다.' },
+        { name: 'notion-create-pages', desc: '지정한 속성과 콘텐츠 블록으로 Notion 페이지를 생성합니다.' },
+        { name: 'notion-update-page', desc: 'Notion 페이지의 속성 또는 콘텐츠를 수정합니다.' },
+        { name: 'notion-move-pages', desc: 'Notion 페이지·데이터베이스를 다른 상위로 이동합니다.' },
+        { name: 'notion-query-database', desc: '필터·정렬·페이지네이션 옵션으로 Notion 데이터베이스 행을 조회합니다.' },
+        { name: 'notion-get-comments', desc: 'Notion 페이지나 블록에 달린 댓글을 조회합니다.' },
+        { name: 'notion-list-users', desc: '연결된 Notion 워크스페이스의 사용자 목록을 조회합니다.' },
+      ],
+    },
+    github: {
+      label: 'GitHub',
+      tools: [
+        { name: 'github-search-repositories', desc: '키워드로 GitHub 리포지토리를 검색합니다.' },
+        { name: 'github-get-repository', desc: '특정 리포지토리의 메타데이터와 설정을 조회합니다.' },
+        { name: 'github-list-issues', desc: '리포지토리의 이슈 목록을 상태·라벨로 필터링해 조회합니다.' },
+        { name: 'github-get-issue', desc: '특정 이슈의 본문, 댓글, 상태를 조회합니다.' },
+        { name: 'github-create-issue', desc: '리포지토리에 새 이슈를 생성합니다.' },
+        { name: 'github-list-pull-requests', desc: '리포지토리의 PR 목록을 조회합니다.' },
+        { name: 'github-get-pull-request', desc: '특정 PR의 변경 내역과 리뷰 상태를 조회합니다.' },
+        { name: 'github-create-comment', desc: '이슈 또는 PR에 댓글을 작성합니다.' },
+      ],
+    },
+    koreamlaw: {
+      label: 'Koream Law',
+      tools: [
+        { name: 'law-search', desc: '키워드로 한국 법령·시행령·시행규칙을 검색합니다.' },
+        { name: 'law-fetch', desc: '법령 ID로 조문 본문과 개정 이력을 조회합니다.' },
+        { name: 'law-list-recent', desc: '최근 개정·시행된 법령 목록을 조회합니다.' },
+      ],
+    },
+    hubspot: {
+      label: 'HubSpot',
+      tools: [
+        { name: 'hubspot-search-contacts', desc: 'HubSpot CRM에서 연락처를 검색합니다.' },
+        { name: 'hubspot-get-deal', desc: '특정 거래(Deal)의 단계와 금액 정보를 조회합니다.' },
+        { name: 'hubspot-get-company', desc: '회사 레코드의 속성과 연관 연락처를 조회합니다.' },
+      ],
+    },
+  };
+  window.openToolsModal = (key) => {
+    const data = TOOL_CATALOG[key];
+    if (!data) return;
+    document.getElementById('toolsViewTitle').textContent = `${data.label} 도구`;
+    document.getElementById('toolsViewDesc').textContent =
+      `${data.label} 커넥터를 통해 AI가 사용할 수 있는 도구 목록입니다.`;
+    document.getElementById('toolsViewList').innerHTML = data.tools.map((t) => (
+      `<div class="tool-ro-item"><div class="name">${t.name}</div><div class="desc">${t.desc}</div></div>`
+    )).join('');
+    openDialog('toolsView');
+  };
+
+  // 연결/해제
+  window.connectService = (btn, name) => {
+    const card = btn.closest('.ext-card');
+    const key = card.dataset.conn;
+    card.dataset.state = 'on';
+    const badge = card.querySelector('.status-badge');
+    badge.classList.remove('off'); badge.classList.add('on'); badge.textContent = '연결됨';
+    card.querySelector('.ext-actions').innerHTML = `
+      <button class="tools-link" type="button" onclick="openToolsModal('${key}')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        도구
+      </button>
+      <button class="ext-btn bordered" type="button" onclick="disconnectService(this, '${name}')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m2 22 20-20"></path><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+        해제
+      </button>
+    `;
+    toast(`${name} 연결이 완료되었습니다`, 'success');
+  };
+
+  window.disconnectService = (btn, name) => {
+    const card = btn.closest('.ext-card');
+    card.dataset.state = 'off';
+    const badge = card.querySelector('.status-badge');
+    badge.classList.remove('on'); badge.classList.add('off'); badge.textContent = '연결 안 됨';
+    const when = card.querySelector('.ext-when'); if (when) when.remove();
+    card.querySelector('.ext-actions').innerHTML = `
+      <button class="ext-btn primary" type="button" onclick="connectService(this, '${name}')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+        연결
+      </button>
+    `;
+    toast(`${name} 연결이 해제되었습니다`);
+  };
+</script>
+</body>
+</html>
